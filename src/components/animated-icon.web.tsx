@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { SymbolView } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 import Animated, { Keyframe, Easing } from 'react-native-reanimated';
 
@@ -66,7 +67,11 @@ export function AnimatedIcon() {
       </Animated.View>
 
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <SymbolView
+          name={{ ios: 'flame.fill', android: 'local_fire_department', web: 'local_fire_department' }}
+          tintColor="#ffffff"
+          size={72}
+        />
       </Animated.View>
     </View>
   );

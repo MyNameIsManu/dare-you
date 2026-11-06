@@ -20,13 +20,30 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+            <NativeTabs.Trigger name="dare">
+  <NativeTabs.Trigger.Label>Dares</NativeTabs.Trigger.Label>
+  <NativeTabs.Trigger.Icon
+    sf={{ default: 'flame', selected: 'flame.fill' }}
+    md="local_fire_department"
+  />
+</NativeTabs.Trigger>
+
+<NativeTabs.Trigger name="create">
+  <NativeTabs.Trigger.Label>Neu</NativeTabs.Trigger.Label>
+  <NativeTabs.Trigger.Icon
+    sf={{ default: 'plus.message', selected: 'plus.message.fill' }}
+    md="local_fire_department"
+  />
+</NativeTabs.Trigger>
+
+<NativeTabs.Trigger name="friends">
+  <NativeTabs.Trigger.Label>Freunde</NativeTabs.Trigger.Label>
+  <NativeTabs.Trigger.Icon
+    sf={{ default: 'figure.2', selected: 'figure.2' }}
+    md="local_fire_department"
+  />
+</NativeTabs.Trigger>
+
     </NativeTabs>
   );
 }

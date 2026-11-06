@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
@@ -104,7 +105,11 @@ export function AnimatedIcon() {
 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <SymbolView
+          name={{ ios: 'flame.fill', android: 'local_fire_department', web: 'local_fire_department' }}
+          tintColor="#ffffff"
+          size={72}
+        />
       </Animated.View>
     </View>
   );

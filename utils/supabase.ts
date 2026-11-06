@@ -1,14 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
+import 'expo-sqlite/localStorage/install'
+import 'react-native-url-polyfill/auto'
 
 export const supabase = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_URL!,
-  process.env.EXPO_PUBLIC_SUPABASE_KEY!,
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   {
     auth: {
-      storage: AsyncStorage,
+      storage: localStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
     },
-  })
+  }
+)
