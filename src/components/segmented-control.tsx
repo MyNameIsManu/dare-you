@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 type SegmentedControlProps<T extends string> = {
   options: readonly T[];
@@ -21,7 +21,8 @@ export function SegmentedControl<T extends string>({
   return (
     <View
       accessibilityRole="radiogroup"
-      style={[styles.track, { backgroundColor: theme.backgroundElement }]}>
+      style={[styles.track, { backgroundColor: theme.backgroundElement }]}
+    >
       {options.map((option) => {
         const selected = option === value;
         return (
@@ -32,11 +33,19 @@ export function SegmentedControl<T extends string>({
             onPress={() => onChange(option)}
             style={({ pressed }) => [
               styles.segment,
-              selected && [styles.segmentSelected, { backgroundColor: theme.text }],
+              selected && [
+                styles.segmentSelected,
+                { backgroundColor: theme.text },
+              ],
               pressed && !selected && styles.pressed,
-            ]}>
+            ]}
+          >
             <ThemedText
-              style={[styles.label, { color: selected ? theme.background : theme.textSecondary }]}>
+              style={[
+                styles.label,
+                { color: selected ? theme.background : theme.textSecondary },
+              ]}
+            >
               {option}
             </ThemedText>
           </Pressable>
@@ -48,7 +57,7 @@ export function SegmentedControl<T extends string>({
 
 const styles = StyleSheet.create({
   track: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: Spacing.one,
     borderRadius: Spacing.five,
     gap: Spacing.one,
@@ -59,7 +68,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.four,
   },
   segmentSelected: {
-    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
   },
   pressed: {
     opacity: 0.6,

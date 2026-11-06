@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ChatBubble, useBubbleColors } from '@/components/chat-bubble';
-import { DateField } from '@/components/date-field';
-import { SegmentedControl } from '@/components/segmented-control';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ChatBubble, useBubbleColors } from "@/components/chat-bubble";
+import { DateField } from "@/components/date-field";
+import { SegmentedControl } from "@/components/segmented-control";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { WebBadge } from "@/components/web-badge";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-const TARGETS = ['mich', 'dich'] as const;
+const TARGETS = ["mich", "dich"] as const;
 type Target = (typeof TARGETS)[number];
 
 const ANIMATION_MS = 250;
@@ -47,9 +58,9 @@ export default function CreateScreen() {
   };
   const theme = useTheme();
   const bubble = useBubbleColors();
-  const [target, setTarget] = useState<Target>('dich');
-  const [friendName, setFriendName] = useState('');
-  const [description, setDescription] = useState('');
+  const [target, setTarget] = useState<Target>("dich");
+  const [friendName, setFriendName] = useState("");
+  const [description, setDescription] = useState("");
   const canSubmit = countLetters(description) >= MIN_DESCRIPTION_LETTERS;
   const [today] = useState(startOfToday);
   const [dueDate, setDueDate] = useState(() => addDays(startOfToday(), 1));
@@ -69,89 +80,113 @@ export default function CreateScreen() {
 
   return (
     <View style={styles.screen}>
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="interactive"
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Ich fordere</ThemedText>
-          <SegmentedControl options={TARGETS} value={target} onChange={setTarget} />
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: theme.background }]}
+        contentInset={insets}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+      >
+        <ThemedView style={styles.container}>
+          <ThemedView style={styles.titleContainer}>
+            <ThemedText type="subtitle">Ich fordere</ThemedText>
+            <SegmentedControl
+              options={TARGETS}
+              value={target}
+              onChange={setTarget}
+            />
 
-          {target === 'dich' && (
+            {target === "dich" && (
+              <Animated.View
+                entering={FadeIn.duration(ANIMATION_MS)}
+                exiting={FadeOut.duration(ANIMATION_MS / 2)}
+                style={styles.stretch}
+              >
+                <TextInput
+                  value={friendName}
+                  onChangeText={setFriendName}
+                  placeholder="Name deines Freundes"
+                  placeholderTextColor={theme.textSecondary}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  accessibilityLabel="Name des Freundes"
+                  style={[
+                    styles.friendInput,
+                    {
+                      color: theme.text,
+                      backgroundColor: theme.backgroundElement,
+                    },
+                  ]}
+                />
+              </Animated.View>
+            )}
+
             <Animated.View
-              entering={FadeIn.duration(ANIMATION_MS)}
-              exiting={FadeOut.duration(ANIMATION_MS / 2)}
-              style={styles.stretch}>
-              <TextInput
-                value={friendName}
-                onChangeText={setFriendName}
-                placeholder="Name deines Freundes"
-                placeholderTextColor={theme.textSecondary}
-                autoCapitalize="words"
-                autoCorrect={false}
-                returnKeyType="done"
-                accessibilityLabel="Name des Freundes"
-                style={[
-                  styles.friendInput,
-                  { color: theme.text, backgroundColor: theme.backgroundElement },
-                ]}
+              layout={LinearTransition.duration(ANIMATION_MS)}
+              style={styles.group}
+            >
+              <ThemedText type="subtitle">heraus bis zum</ThemedText>
+              <DateField
+                value={dueDate}
+                onChange={setDueDate}
+                minimumDate={today}
+                accessibilityLabel="Fälligkeitsdatum"
               />
+              <ChatBubble>
+                <TextInput
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Beschreibe den Task…"
+                  placeholderTextColor={bubble.meta}
+                  multiline
+                  textAlignVertical="top"
+                  autoCapitalize="sentences"
+                  returnKeyType="done"
+                  submitBehavior="blurAndSubmit"
+                  accessibilityLabel="Beschreibung des Tasks"
+                  style={[styles.descriptionInput, { color: bubble.text }]}
+                />
+              </ChatBubble>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !canSubmit }}
+                accessibilityHint={
+                  canSubmit
+                    ? undefined
+                    : "Beschreibe den Task mit mindestens 5 Buchstaben"
+                }
+                disabled={!canSubmit}
+                onPress={() => {
+                  // TODO: create the dare from target, friendName, dueDate, description
+                }}
+                style={({ pressed }) => [
+                  styles.submitButton,
+                  {
+                    backgroundColor: canSubmit
+                      ? theme.text
+                      : theme.backgroundElement,
+                  },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.submitLabel,
+                    {
+                      color: canSubmit ? theme.background : theme.textSecondary,
+                    },
+                  ]}
+                >
+                  Los!
+                </ThemedText>
+              </Pressable>
             </Animated.View>
-          )}
-
-          <Animated.View layout={LinearTransition.duration(ANIMATION_MS)} style={styles.group}>
-           <ThemedText type="subtitle">heraus bis zum</ThemedText>
-          <DateField
-            value={dueDate}
-            onChange={setDueDate}
-            minimumDate={today}
-            accessibilityLabel="Fälligkeitsdatum"
-          />
-          <ChatBubble>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Beschreibe den Task…"
-            placeholderTextColor={bubble.meta}
-            multiline
-            textAlignVertical="top"
-            autoCapitalize="sentences"
-            returnKeyType="done"
-  submitBehavior="blurAndSubmit"
-            accessibilityLabel="Beschreibung des Tasks"
-            style={[styles.descriptionInput, { color: bubble.text }]}
-          />
-          </ChatBubble>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canSubmit }}
-            accessibilityHint={canSubmit ? undefined : 'Beschreibe den Task mit mindestens 5 Buchstaben'}
-            disabled={!canSubmit}
-            onPress={() => {
-              // TODO: create the dare from target, friendName, dueDate, description
-            }}
-            style={({ pressed }) => [
-              styles.submitButton,
-              { backgroundColor: canSubmit ? theme.text : theme.backgroundElement },
-              pressed && styles.pressed,
-            ]}>
-            <ThemedText
-              style={[
-                styles.submitLabel,
-                { color: canSubmit ? theme.background : theme.textSecondary },
-              ]}>
-              Los!
-            </ThemedText>
-          </Pressable>
-          </Animated.View>
+          </ThemedView>
+          {Platform.OS === "web" && <WebBadge />}
         </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      </ScrollView>
     </View>
   );
 }
@@ -162,8 +197,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
   },
   container: {
     maxWidth: MaxContentWidth,
@@ -171,16 +206,16 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     gap: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.six,
   },
   stretch: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   submitButton: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
+    alignSelf: "stretch",
+    alignItems: "center",
     paddingVertical: Spacing.three,
     borderRadius: Spacing.five,
     marginTop: Spacing.two,
@@ -194,8 +229,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   group: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
+    alignSelf: "stretch",
+    alignItems: "center",
     gap: Spacing.three,
   },
   friendInput: {
@@ -213,16 +248,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   centerText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   linkButton: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: Spacing.five,
-    justifyContent: 'center',
+    justifyContent: "center",
     gap: Spacing.one,
-    alignItems: 'center',
+    alignItems: "center",
   },
   sectionsWrapper: {
     gap: Spacing.five,
@@ -230,10 +265,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
   },
   collapsibleContent: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   imageTutorial: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 296 / 171,
     borderRadius: Spacing.three,
     marginTop: Spacing.two,
@@ -241,6 +276,6 @@ const styles = StyleSheet.create({
   imageReact: {
     width: 100,
     height: 100,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

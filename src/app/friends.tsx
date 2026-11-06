@@ -1,11 +1,11 @@
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { WebBadge } from "@/components/web-badge";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function DareScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -30,18 +30,21 @@ export default function DareScreen() {
 
   return (
     <View style={styles.screen}>
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Deine Freunde</ThemedText>
-           <ThemedText type="small">Feature noch nicht implementiert.</ThemedText>
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: theme.background }]}
+        contentInset={insets}
+        contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+      >
+        <ThemedView style={styles.container}>
+          <ThemedView style={styles.titleContainer}>
+            <ThemedText type="subtitle">Deine Freunde</ThemedText>
+            <ThemedText type="small">
+              Feature noch nicht implementiert.
+            </ThemedText>
+          </ThemedView>
+          {Platform.OS === "web" && <WebBadge />}
         </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      </ScrollView>
     </View>
   );
 }
@@ -52,8 +55,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
   },
   container: {
     maxWidth: MaxContentWidth,
@@ -61,21 +64,21 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     gap: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.six,
   },
   centerText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   linkButton: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: Spacing.five,
-    justifyContent: 'center',
+    justifyContent: "center",
     gap: Spacing.one,
-    alignItems: 'center',
+    alignItems: "center",
   },
   sectionsWrapper: {
     gap: Spacing.five,
@@ -83,10 +86,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
   },
   collapsibleContent: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   imageTutorial: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 296 / 171,
     borderRadius: Spacing.three,
     marginTop: Spacing.two,
@@ -94,6 +97,6 @@ const styles = StyleSheet.create({
   imageReact: {
     width: 100,
     height: 100,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

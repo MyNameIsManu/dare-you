@@ -1,25 +1,38 @@
-import { type ReactNode, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { type ReactNode, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Spacing } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 /** Colors of an outgoing ("sent") chat message, for light and dark mode. */
 export const BubbleColors = {
-  light: { background: '#D9FDD3', text: '#111B21', meta: '#667781', ticks: '#53BDEB' },
-  dark: { background: '#005C4B', text: '#E9EDEF', meta: '#AEBAC1', ticks: '#53BDEB' },
+  light: {
+    background: "#D9FDD3",
+    text: "#111B21",
+    meta: "#667781",
+    ticks: "#53BDEB",
+  },
+  dark: {
+    background: "#005C4B",
+    text: "#E9EDEF",
+    meta: "#AEBAC1",
+    ticks: "#53BDEB",
+  },
 } as const;
 
 export function useBubbleColors() {
   const scheme = useColorScheme();
-  return BubbleColors[scheme === 'dark' ? 'dark' : 'light'];
+  return BubbleColors[scheme === "dark" ? "dark" : "light"];
 }
 
 const TAIL_WIDTH = 10;
 const TAIL_HEIGHT = 14;
 
 function formatTime(date: Date) {
-  return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 /** A right-aligned "sent message" speech bubble with a tail, timestamp and read ticks. */
@@ -44,23 +57,23 @@ export function ChatBubble({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   row: {
-    alignSelf: 'stretch',
-    alignItems: 'flex-end',
+    alignSelf: "stretch",
+    alignItems: "flex-end",
     paddingRight: TAIL_WIDTH,
   },
   bubble: {
-    width: '92%',
+    width: "92%",
     borderRadius: 12,
     borderTopRightRadius: 0,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.one,
-    boxShadow: '0 1px 1px rgba(11, 20, 26, 0.13)',
+    boxShadow: "0 1px 1px rgba(11, 20, 26, 0.13)",
   },
   meta: {
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignSelf: "flex-end",
+    alignItems: "center",
     gap: Spacing.one,
   },
   metaText: {
@@ -74,13 +87,13 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
   tail: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: -TAIL_WIDTH,
     width: 0,
     height: 0,
     borderTopWidth: TAIL_HEIGHT,
     borderRightWidth: TAIL_WIDTH,
-    borderRightColor: 'transparent',
+    borderRightColor: "transparent",
   },
 });

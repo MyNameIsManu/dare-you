@@ -1,11 +1,11 @@
-import NativeDatePicker from '@expo/ui/community/datetime-picker';
-import { useState } from 'react';
-import { Platform, Pressable, StyleSheet } from 'react-native';
+import NativeDatePicker from "@expo/ui/community/datetime-picker";
+import { useState } from "react";
+import { Platform, Pressable, StyleSheet } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "@/hooks/use-theme";
 
 export type DateFieldProps = {
   value: Date;
@@ -15,11 +15,11 @@ export type DateFieldProps = {
 };
 
 export function formatDate(date: Date) {
-  return date.toLocaleDateString('de-DE', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+  return date.toLocaleDateString("de-DE", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 }
 
@@ -27,12 +27,17 @@ export function formatDate(date: Date) {
  * iOS: native compact picker (tap the pill → calendar popover).
  * Android: themed button that opens the Material date dialog.
  */
-export function DateField({ value, onChange, minimumDate, accessibilityLabel }: DateFieldProps) {
+export function DateField({
+  value,
+  onChange,
+  minimumDate,
+  accessibilityLabel,
+}: DateFieldProps) {
   const theme = useTheme();
   const scheme = useColorScheme();
   const [open, setOpen] = useState(false);
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === "ios") {
     return (
       <NativeDatePicker
         value={value}
@@ -40,7 +45,7 @@ export function DateField({ value, onChange, minimumDate, accessibilityLabel }: 
         display="compact"
         minimumDate={minimumDate}
         locale="de_DE"
-        themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+        themeVariant={scheme === "dark" ? "dark" : "light"}
         accentColor={theme.text}
         onValueChange={(_, date) => onChange(date)}
       />
@@ -58,7 +63,8 @@ export function DateField({ value, onChange, minimumDate, accessibilityLabel }: 
           styles.button,
           { backgroundColor: theme.backgroundElement },
           pressed && styles.pressed,
-        ]}>
+        ]}
+      >
         <ThemedText style={styles.label}>{formatDate(value)}</ThemedText>
       </Pressable>
 
@@ -69,7 +75,7 @@ export function DateField({ value, onChange, minimumDate, accessibilityLabel }: 
           presentation="dialog"
           minimumDate={minimumDate}
           accentColor={theme.text}
-          positiveButton={{ label: 'OK' }}
+          positiveButton={{ label: "OK" }}
           onValueChange={(_, date) => {
             setOpen(false);
             onChange(date);
