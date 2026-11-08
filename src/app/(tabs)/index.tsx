@@ -2,7 +2,9 @@ import * as Device from "expo-device";
 import { Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAuth } from "@/../utils/auth-context";
 import { AnimatedIcon } from "@/components/animated-icon";
+import { SignOutButton } from "@/components/sign-out-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { WebBadge } from "@/components/web-badge";
@@ -28,6 +30,8 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  const { session } = useAuth();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -39,6 +43,15 @@ export default function HomeScreen() {
           <ThemedText type="smallBold" style={styles.title}>
             Du hast keine offenen Tasks.
           </ThemedText>
+        </ThemedView>
+
+        <ThemedView style={styles.accountSection}>
+          {session?.user.email && (
+            <ThemedText type="small" themeColor="textSecondary">
+              Angemeldet als {session.user.email}
+            </ThemedText>
+          )}
+          <SignOutButton />
         </ThemedView>
 
         {Platform.OS === "web" && <WebBadge />}
@@ -70,6 +83,10 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
+  },
+  accountSection: {
+    alignItems: "center",
+    gap: Spacing.two,
   },
   code: {
     textTransform: "uppercase",
