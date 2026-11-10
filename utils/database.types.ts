@@ -204,6 +204,11 @@ export type Database = {
     };
     Functions: {
       are_friends: { Args: { a: string; b: string }; Returns: boolean };
+      is_username_available: { Args: { name: string }; Returns: boolean };
+      send_friend_request: {
+        Args: { target_username: string };
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;

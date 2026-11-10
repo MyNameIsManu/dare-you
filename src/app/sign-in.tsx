@@ -14,9 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 type Mode = "signIn" | "signUp";
 
+const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
+
 export default function SignInScreen() {
   const [mode, setMode] = useState<Mode>("signIn");
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,19 +36,45 @@ export default function SignInScreen() {
       setError("Please enter your email and password.");
       return;
     }
-    if (isSignUp && !displayName.trim()) {
-      setError("Please enter a display name.");
-      return;
-    }
 
     setLoading(true);
 
     if (isSignUp) {
+      const cleanUsername = username.trim().toLowerCase();
+
+      if (!displayName.trim()) {
+        setError("Please enter a display name.");
+        setLoading(false);
+        return;
+      }
+      if (!USERNAME_PATTERN.test(cleanUsername)) {
+        setError("Username: 3–30 characters, only a–z, 0–9 and _.");
+        setLoading(false);
+        return;
+      }
+
+      const { data: available, error: checkError } = await supabase.rpc(
+        "is_username_available",
+        { name: cleanUsername },
+      );
+      if (checkError) {
+        setError(checkError.message);
+        setLoading(false);
+        return;
+      }
+      if (!available) {
+        setError("This username is already taken.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         // Read by the database trigger that creates the profile
-        options: { data: { display_name: displayName.trim() } },
+        options: {
+          data: { display_name: displayName.trim(), username: cleanUsername },
+        },
       });
       if (error) setError(error.message);
       else if (!data.session)
@@ -81,14 +110,26 @@ export default function SignInScreen() {
 
         <View style={styles.form}>
           {isSignUp && (
-            <TextInput
-              style={styles.input}
-              placeholder="Display name"
-              value={displayName}
-              onChangeText={setDisplayName}
-              autoComplete="name"
-              textContentType="name"
-            />
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Display name"
+                value={displayName}
+                onChangeText={setDisplayName}
+                autoComplete="name"
+                textContentType="name"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Username (how friends find you)"
+                value={username}
+                onChangeText={(text) => setUsername(text.toLowerCase())}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="username-new"
+                textContentType="username"
+              />
+            </>
           )}
 
           <TextInput

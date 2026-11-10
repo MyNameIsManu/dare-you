@@ -1,51 +1,13 @@
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, StyleSheet } from "react-native";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
+import { FriendSearch } from "@/components/friend-search";
+import { MaxContentWidth, Spacing } from "@/constants/theme";
 
-export default function DareScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
-
+export default function FriendsScreen() {
   return (
-    <View style={styles.screen}>
-      <ScrollView
-        style={[styles.scrollView, { backgroundColor: theme.background }]}
-        contentInset={insets}
-        contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
-      >
-        <ThemedView style={styles.container}>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="subtitle">Deine Freunde</ThemedText>
-            <ThemedText type="small">
-              Feature noch nicht implementiert.
-            </ThemedText>
-          </ThemedView>
-          {Platform.OS === "web" && <WebBadge />}
-        </ThemedView>
-      </ScrollView>
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <FriendSearch />
+    </SafeAreaView>
   );
 }
 
