@@ -7,12 +7,15 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+
+import { FriendLists } from "@/components/friend-lists";
+import { ActionButton, ProfileRow } from "@/components/profile-row";
+import { ThemedText } from "@/components/themed-text";
 
 const STATUS_TEXT = {
   requested: "Request sent",
@@ -28,6 +31,8 @@ export function FriendSearch() {
   const [error, setError] = useState<string | null>(null);
   // Per-user feedback after tapping "Add", keyed by profile id
   const [sent, setSent] = useState<Record<string, string>>({});
+
+  const isSearching = query.trim().length >= 2;
 
   useEffect(() => {
     const q = query.trim();
@@ -90,39 +95,39 @@ export function FriendSearch() {
         {loading && <ActivityIndicator style={styles.spinner} />}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {/* Empty search field: show my friends and requests instead */}
+      {!isSearching ? (
+        <FriendLists />
+      ) : (
+        <>
+          {error && <Text style={styles.error}>{error}</Text>}
 
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.id}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          query.trim().length >= 2 && !loading && !error ? (
-            <Text style={styles.empty}>No users found</Text>
-          ) : undefined
-        }
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.names}>
-              <Text style={styles.displayName}>
-                {item.display_name ?? item.username}
-              </Text>
-              <Text style={styles.username}>@{item.username}</Text>
-            </View>
-
-            {sent[item.id] ? (
-              <Text style={styles.status}>{sent[item.id]}</Text>
-            ) : (
-              <Pressable
-                style={styles.addButton}
-                onPress={() => handleAdd(item)}
-              >
-                <Text style={styles.addText}>Add</Text>
-              </Pressable>
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item.id}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              !loading && !error ? (
+                <ThemedText themeColor="textSecondary" style={styles.empty}>
+                  No users found
+                </ThemedText>
+              ) : undefined
+            }
+            renderItem={({ item }) => (
+              <ProfileRow
+                profile={item}
+                right={
+                  sent[item.id] ? (
+                    <Text style={styles.status}>{sent[item.id]}</Text>
+                  ) : (
+                    <ActionButton label="Add" onPress={() => handleAdd(item)} />
+                  )
+                }
+              />
             )}
-          </View>
-        )}
-      />
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -142,23 +147,6 @@ const styles = StyleSheet.create({
   },
   spinner: { marginLeft: 10 },
   error: { color: "#c62828", marginTop: 8 },
-  empty: { color: "#888", textAlign: "center", marginTop: 24 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ddd",
-  },
-  names: { flex: 1 },
-  displayName: { fontSize: 16, fontWeight: "600" },
-  username: { fontSize: 14, color: "#888", marginTop: 2 },
-  addButton: {
-    backgroundColor: "#111",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  addText: { color: "#fff", fontWeight: "600" },
+  empty: { textAlign: "center", marginTop: 24 },
   status: { color: "#2e7d32", fontSize: 14 },
 });

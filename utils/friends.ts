@@ -58,6 +58,54 @@ export async function searchUsers(query: string): Promise<PublicProfile[]> {
   return data;
 }
 
+/** Load one public profile by id. Returns null if no such user exists. */
+export async function getProfile(id: string): Promise<PublicProfile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(PROFILE_FIELDS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw toError(error);
+  return data;
+}
+
+export type FriendshipStatus =
+  | { kind: "self" }
+  | { kind: "none" }
+  | { kind: "friends"; friendshipId: number }
+  | { kind: "outgoing"; friendshipId: number } // I asked them
+  | { kind: "incoming"; friendshipId: number }; // they asked me
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** My relationship with another user. */
+export async function getFriendshipWith(
+  otherId: string,
+): Promise<FriendshipStatus> {
+  const myId = await getMyId();
+  if (otherId === myId) return { kind: "self" };
+  // otherId comes from the URL and is placed into a filter string below
+  if (!UUID_PATTERN.test(otherId)) return { kind: "none" };
+
+  // RLS only returns friendships I'm part of, so any row involving
+  // the other user is the one between the two of us.
+  const { data, error } = await supabase
+    .from("friendships")
+    .select("id, status, requester_id")
+    .or(`requester_id.eq.${otherId},addressee_id.eq.${otherId}`)
+    .maybeSingle();
+
+  if (error) throw toError(error);
+  if (!data) return { kind: "none" };
+  if (data.status === "accepted")
+    return { kind: "friends", friendshipId: data.id };
+  return data.requester_id === myId
+    ? { kind: "outgoing", friendshipId: data.id }
+    : { kind: "incoming", friendshipId: data.id };
+}
+
 /** Send a friend request, or accept theirs if they already asked you. */
 export async function sendFriendRequest(username: string) {
   const { data, error } = await supabase.rpc("send_friend_request", {

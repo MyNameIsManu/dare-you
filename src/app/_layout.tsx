@@ -24,6 +24,10 @@ function RootNavigator() {
         {/* Only reachable when logged in */}
         <Stack.Protected guard={!!session}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="profile/[id]"
+            options={{ title: "Profile", headerBackTitle: "Back" }}
+          />
         </Stack.Protected>
 
         {/* Only reachable when logged out */}
