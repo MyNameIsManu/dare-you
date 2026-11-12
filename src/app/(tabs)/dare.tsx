@@ -1,11 +1,25 @@
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { getMyDares, type MyDares } from "@/../utils/dares";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { DareCard } from "@/components/dare-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { WebBadge } from "@/components/web-badge";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+
+/** How long the "just created" highlight stays before the URL param is cleared. */
+const HIGHLIGHT_MS = 3000;
 
 export default function DareScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -14,6 +28,48 @@ export default function DareScreen() {
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+
+  // Set by the Create tab after saving: /dare?highlight=<id>
+  const { highlight } = useLocalSearchParams<{ highlight?: string }>();
+  const highlightId = highlight ? Number(highlight) : null;
+
+  const [dares, setDares] = useState<MyDares | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setDares(await getMyDares());
+      setError(null);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Dares konnten nicht geladen werden",
+      );
+    }
+  }, []);
+
+  // Reload every time the tab is shown, so new dares appear right away
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
+
+  // Clear the param afterwards, so the dare doesn't glow again on the next visit
+  useEffect(() => {
+    if (!highlight) return;
+    const timer = setTimeout(
+      () => router.setParams({ highlight: undefined }),
+      HIGHLIGHT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [highlight]);
+
+  async function refresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
 
   const contentPlatformStyle = Platform.select({
     android: {
@@ -34,21 +90,48 @@ export default function DareScreen() {
         style={[styles.scrollView, { backgroundColor: theme.background }]}
         contentInset={insets}
         contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+        }
       >
         <ThemedView style={styles.container}>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="subtitle">Open Dares</ThemedText>
-            <ThemedText type="small">Du hast keine offenen Dares</ThemedText>
-          </ThemedView>
+          {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="subtitle" style={styles.centerText}>
-              Done Dares
-            </ThemedText>
-            <ThemedText type="small">
-              Du hast noch keine abgeschlossenen Dares.
-            </ThemedText>
-          </ThemedView>
+          {!dares ? (
+            !error && <ActivityIndicator style={styles.loading} />
+          ) : (
+            <>
+              <ThemedView style={styles.section}>
+                <ThemedText type="subtitle">Offene Dares</ThemedText>
+                {dares.open.length === 0 ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Du hast keine offenen Dares.
+                  </ThemedText>
+                ) : (
+                  dares.open.map((dare) => (
+                    <DareCard
+                      key={dare.id}
+                      dare={dare}
+                      highlight={dare.id === highlightId}
+                    />
+                  ))
+                )}
+              </ThemedView>
+
+              <ThemedView style={styles.section}>
+                <ThemedText type="subtitle">Erledigte Dares</ThemedText>
+                {dares.done.length === 0 ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Du hast noch keine abgeschlossenen Dares.
+                  </ThemedText>
+                ) : (
+                  dares.done.map((dare) => (
+                    <DareCard key={dare.id} dare={dare} />
+                  ))
+                )}
+              </ThemedView>
+            </>
+          )}
 
           {Platform.OS === "web" && <WebBadge />}
         </ThemedView>
@@ -69,42 +152,19 @@ const styles = StyleSheet.create({
   container: {
     maxWidth: MaxContentWidth,
     flexGrow: 1,
+    paddingHorizontal: Spacing.four,
   },
-  titleContainer: {
+  section: {
     gap: Spacing.three,
     alignItems: "center",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+    paddingVertical: Spacing.five,
   },
-  centerText: {
+  loading: {
+    marginTop: Spacing.six,
+  },
+  error: {
+    color: "#c62828",
     textAlign: "center",
-  },
-  linkButton: {
-    flexDirection: "row",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: "center",
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: "center",
-  },
-  imageTutorial: {
-    width: "100%",
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: "center",
+    marginTop: Spacing.four,
   },
 });

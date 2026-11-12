@@ -1,3 +1,5 @@
+import { createDare } from "@/../utils/dares";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Platform,
@@ -60,10 +62,43 @@ export default function CreateScreen() {
   const bubble = useBubbleColors();
   const [target, setTarget] = useState<Target>("dich");
   const [friendName, setFriendName] = useState("");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const canSubmit = countLetters(description) >= MIN_DESCRIPTION_LETTERS;
   const [today] = useState(startOfToday);
   const [dueDate, setDueDate] = useState(() => addDays(startOfToday(), 1));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Step 2: only dares for yourself — the friend picker comes next
+  const isForMe = target === "mich";
+  const isValid =
+    title.trim().length > 0 &&
+    countLetters(description) >= MIN_DESCRIPTION_LETTERS;
+  const canSubmit = isForMe && isValid && !saving;
+  const submitHint = !isForMe
+    ? "Dares für Freunde kommen bald – wähle vorerst „mich“."
+    : !title.trim()
+      ? "Gib dem Dare einen Titel."
+      : `Beschreibe den Task mit mindestens ${MIN_DESCRIPTION_LETTERS} Buchstaben.`;
+
+  async function handleSubmit() {
+    if (!canSubmit) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const id = await createDare({ title, description, dueDate });
+      // Clear the form for the next dare
+      setTitle("");
+      setDescription("");
+      setDueDate(addDays(startOfToday(), 1));
+      // Switch to the Dares tab and let it highlight the new dare
+      router.navigate({ pathname: "/dare", params: { highlight: String(id) } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Speichern fehlgeschlagen");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const contentPlatformStyle = Platform.select({
     android: {
@@ -133,6 +168,24 @@ export default function CreateScreen() {
                 minimumDate={today}
                 accessibilityLabel="Fälligkeitsdatum"
               />
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Titel des Dares"
+                placeholderTextColor={theme.textSecondary}
+                maxLength={120}
+                autoCapitalize="sentences"
+                returnKeyType="done"
+                accessibilityLabel="Titel des Dares"
+                style={[
+                  styles.friendInput,
+                  styles.stretch,
+                  {
+                    color: theme.text,
+                    backgroundColor: theme.backgroundElement,
+                  },
+                ]}
+              />
               <ChatBubble>
                 <TextInput
                   value={description}
@@ -151,16 +204,10 @@ export default function CreateScreen() {
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityState={{ disabled: !canSubmit }}
-                accessibilityHint={
-                  canSubmit
-                    ? undefined
-                    : "Beschreibe den Task mit mindestens 5 Buchstaben"
-                }
+                accessibilityState={{ disabled: !canSubmit, busy: saving }}
+                accessibilityHint={canSubmit ? undefined : submitHint}
                 disabled={!canSubmit}
-                onPress={() => {
-                  // TODO: create the dare from target, friendName, dueDate, description
-                }}
+                onPress={handleSubmit}
                 style={({ pressed }) => [
                   styles.submitButton,
                   {
@@ -179,9 +226,17 @@ export default function CreateScreen() {
                     },
                   ]}
                 >
-                  Los!
+                  {saving ? "Speichern…" : "Los!"}
                 </ThemedText>
               </Pressable>
+
+              {/* Temporary feedback — design follows later */}
+              {!canSubmit && !saving && (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {submitHint}
+                </ThemedText>
+              )}
+              {error && <ThemedText style={styles.error}>{error}</ThemedText>}
             </Animated.View>
           </ThemedView>
           {Platform.OS === "web" && <WebBadge />}
@@ -227,6 +282,10 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  error: {
+    color: "#c62828",
+    textAlign: "center",
   },
   group: {
     alignSelf: "stretch",
