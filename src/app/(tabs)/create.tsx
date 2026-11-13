@@ -1,4 +1,5 @@
 import { createDare } from "@/../utils/dares";
+import type { PublicProfile } from "@/../utils/friends";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -18,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatBubble, useBubbleColors } from "@/components/chat-bubble";
 import { DateField } from "@/components/date-field";
+import { FriendPicker } from "@/components/friend-picker";
 import { SegmentedControl } from "@/components/segmented-control";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -61,7 +63,7 @@ export default function CreateScreen() {
   const theme = useTheme();
   const bubble = useBubbleColors();
   const [target, setTarget] = useState<Target>("dich");
-  const [friendName, setFriendName] = useState("");
+  const [friend, setFriend] = useState<PublicProfile | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [today] = useState(startOfToday);
@@ -69,14 +71,15 @@ export default function CreateScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Step 2: only dares for yourself — the friend picker comes next
   const isForMe = target === "mich";
+  const hasAssignee = isForMe || friend !== null;
   const isValid =
+    hasAssignee &&
     title.trim().length > 0 &&
     countLetters(description) >= MIN_DESCRIPTION_LETTERS;
-  const canSubmit = isForMe && isValid && !saving;
-  const submitHint = !isForMe
-    ? "Dares für Freunde kommen bald – wähle vorerst „mich“."
+  const canSubmit = isValid && !saving;
+  const submitHint = !hasAssignee
+    ? "Wähle einen Freund aus."
     : !title.trim()
       ? "Gib dem Dare einen Titel."
       : `Beschreibe den Task mit mindestens ${MIN_DESCRIPTION_LETTERS} Buchstaben.`;
@@ -86,8 +89,15 @@ export default function CreateScreen() {
     setSaving(true);
     setError(null);
     try {
-      const id = await createDare({ title, description, dueDate });
+      const id = await createDare({
+        title,
+        description,
+        dueDate,
+        // Omitted = dare yourself. A friend's dare starts as "pending".
+        assigneeId: isForMe ? undefined : friend?.id,
+      });
       // Clear the form for the next dare
+      setFriend(null);
       setTitle("");
       setDescription("");
       setDueDate(addDays(startOfToday(), 1));
@@ -137,23 +147,7 @@ export default function CreateScreen() {
                 exiting={FadeOut.duration(ANIMATION_MS / 2)}
                 style={styles.stretch}
               >
-                <TextInput
-                  value={friendName}
-                  onChangeText={setFriendName}
-                  placeholder="Name deines Freundes"
-                  placeholderTextColor={theme.textSecondary}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  accessibilityLabel="Name des Freundes"
-                  style={[
-                    styles.friendInput,
-                    {
-                      color: theme.text,
-                      backgroundColor: theme.backgroundElement,
-                    },
-                  ]}
-                />
+                <FriendPicker value={friend} onChange={setFriend} />
               </Animated.View>
             )}
 

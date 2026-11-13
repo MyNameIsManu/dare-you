@@ -1,4 +1,4 @@
-import { getMyDares, type MyDares } from "@/../utils/dares";
+import { getMyDares, personName, type MyDares } from "@/../utils/dares";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -117,6 +117,21 @@ export default function DareScreen() {
                   ))
                 )}
               </ThemedView>
+
+              {/* Dares I sent to friends that they haven't answered yet */}
+              {dares.sent.length > 0 && (
+                <ThemedView style={styles.section}>
+                  <ThemedText type="subtitle">Wartet auf Antwort</ThemedText>
+                  {dares.sent.map((dare) => (
+                    <DareCard
+                      key={dare.id}
+                      dare={dare}
+                      subtitle={`An ${personName(dare.assignee)}`}
+                      highlight={dare.id === highlightId}
+                    />
+                  ))}
+                </ThemedView>
+              )}
 
               <ThemedView style={styles.section}>
                 <ThemedText type="subtitle">Erledigte Dares</ThemedText>

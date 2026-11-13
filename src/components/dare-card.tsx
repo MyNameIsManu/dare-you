@@ -24,6 +24,8 @@ function formatDeadline(iso: string) {
 }
 
 const STATUS_LABEL = {
+  pending: "Wartet auf Antwort",
+  declined: "Abgelehnt",
   completed: "✓ Geschafft",
   failed: "✗ Nicht geschafft",
 } as const;
@@ -32,9 +34,12 @@ const STATUS_LABEL = {
 export function DareCard({
   dare,
   highlight = false,
+  subtitle,
 }: {
   dare: Dare;
   highlight?: boolean;
+  /** Extra line above the title, e.g. "An Max" */
+  subtitle?: string;
 }) {
   const theme = useTheme();
   const glow = useSharedValue(0);
@@ -68,6 +73,11 @@ export function DareCard({
       <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
 
       <View style={styles.content}>
+        {subtitle && (
+          <ThemedText type="small" themeColor="textSecondary">
+            {subtitle}
+          </ThemedText>
+        )}
         <ThemedText style={styles.title}>{dare.title}</ThemedText>
         {dare.description && (
           <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>

@@ -15,25 +15,42 @@ export type Dare = {
   title: string;
   description: string | null;
   deadline: string;
-  status: "open" | "completed" | "failed";
+  status: "pending" | "open" | "declined" | "completed" | "failed";
   created_at: string;
   creator_id: string;
   assignee_id: string;
+  creator: DarePerson | null;
+  assignee: DarePerson | null;
 };
 
+export type DarePerson = {
+  username: string | null;
+  display_name: string | null;
+};
+
+/** "Max" or "@max" — for showing who a dare is from or for. */
+export function personName(p: DarePerson | null) {
+  return p?.display_name ?? (p?.username ? `@${p.username}` : "Unbekannt");
+}
+
 export type MyDares = {
-  open: Dare[]; // soonest deadline first
+  invitations: Dare[]; // pending, sent to me: I have to accept or decline
+  sent: Dare[]; // pending, I sent them: waiting for my friend's answer
+  open: Dare[]; // accepted and running, soonest deadline first
+  declined: Dare[]; // my dares that a friend declined
   done: Dare[]; // completed or failed, newest first
 };
 
-/** Dares I have to do or that I created, split into open and done. */
+/** Dares I have to do or that I created, grouped by status. */
 export async function getMyDares(): Promise<MyDares> {
   const myId = await getMyId();
 
   const { data, error } = await supabase
     .from("dares")
     .select(
-      "id, title, description, deadline, status, created_at, creator_id, assignee_id",
+      `id, title, description, deadline, status, created_at, creator_id, assignee_id,
+       creator:profiles!dares_creator_id_fkey(username, display_name),
+       assignee:profiles!dares_assignee_id_fkey(username, display_name)`,
     )
     .or(`assignee_id.eq.${myId},creator_id.eq.${myId}`)
     .order("deadline", { ascending: true });
@@ -41,10 +58,14 @@ export async function getMyDares(): Promise<MyDares> {
   if (error) throw toError(error);
 
   const dares = data as Dare[];
+  const pending = dares.filter((d) => d.status === "pending");
   return {
+    invitations: pending.filter((d) => d.assignee_id === myId),
+    sent: pending.filter((d) => d.creator_id === myId),
     open: dares.filter((d) => d.status === "open"),
+    declined: dares.filter((d) => d.status === "declined"),
     done: dares
-      .filter((d) => d.status !== "open")
+      .filter((d) => d.status === "completed" || d.status === "failed")
       .sort((a, b) => b.deadline.localeCompare(a.deadline)),
   };
 }
