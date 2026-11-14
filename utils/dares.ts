@@ -106,3 +106,36 @@ export async function createDare(dare: NewDare): Promise<number> {
   if (error) throw toError(error);
   return data.id;
 }
+
+/**
+ * Accept or decline a dare a friend sent you.
+ * Runs respond_to_dare() in the database, which checks that you are the
+ * assignee and that the dare is still pending. Returns the new status.
+ */
+export async function respondToDare(dareId: number, accept: boolean) {
+  const { data, error } = await supabase.rpc("respond_to_dare", {
+    target_dare_id: dareId,
+    accept,
+  });
+  if (error) throw toError(error);
+  return data as "open" | "declined";
+}
+
+/**
+ * Withdraw a dare you sent that hasn't been answered yet (deletes it).
+ * Only deletes while still pending, so an already accepted dare isn't
+ * removed by accident if your friend answered in the meantime.
+ */
+export async function withdrawDare(dareId: number) {
+  const { data, error } = await supabase
+    .from("dares")
+    .delete()
+    .eq("id", dareId)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) throw toError(error);
+  if (data.length === 0) {
+    throw new Error("Dein Freund hat bereits geantwortet.");
+  }
+}

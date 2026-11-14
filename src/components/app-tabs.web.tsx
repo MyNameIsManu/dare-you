@@ -1,4 +1,11 @@
-import { TabListProps, TabTriggerSlotProps } from "expo-router/ui";
+import {
+  TabList,
+  TabListProps,
+  Tabs,
+  TabSlot,
+  TabTrigger,
+  TabTriggerSlotProps,
+} from "expo-router/ui";
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 
@@ -7,6 +14,31 @@ import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 import { ExternalLink } from "./external-link";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
+
+/** Web tab bar (headless tabs). Keep in sync with the native tabs in app-tabs.tsx. */
+export default function AppTabs() {
+  return (
+    <Tabs>
+      <TabSlot style={{ height: "100%" }} />
+      <TabList asChild>
+        <CustomTabList>
+          <TabTrigger name="index" href="/" asChild>
+            <TabButton>Home</TabButton>
+          </TabTrigger>
+          <TabTrigger name="dare" href="/dare" asChild>
+            <TabButton>Dares</TabButton>
+          </TabTrigger>
+          <TabTrigger name="create" href="/create" asChild>
+            <TabButton>Neu</TabButton>
+          </TabTrigger>
+          <TabTrigger name="friends" href="/friends" asChild>
+            <TabButton>Freunde</TabButton>
+          </TabTrigger>
+        </CustomTabList>
+      </TabList>
+    </Tabs>
+  );
+}
 
 export function TabButton({
   children,

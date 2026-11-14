@@ -1,8 +1,17 @@
-import { getMyDares, personName, type MyDares } from "@/../utils/dares";
+import { useAuth } from "@/../utils/auth-context";
+import {
+  getMyDares,
+  personName,
+  respondToDare,
+  withdrawDare,
+  type Dare,
+  type MyDares,
+} from "@/../utils/dares";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   RefreshControl,
   ScrollView,
@@ -12,6 +21,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DareCard } from "@/components/dare-card";
+import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { WebBadge } from "@/components/web-badge";
@@ -20,6 +30,23 @@ import { useTheme } from "@/hooks/use-theme";
 
 /** How long the "just created" highlight stays before the URL param is cleared. */
 const HIGHLIGHT_MS = 3000;
+
+/** Ask before a destructive action (native dialog, browser confirm on web). */
+function confirm(
+  title: string,
+  message: string,
+  confirmLabel: string,
+  onConfirm: () => void,
+) {
+  if (Platform.OS === "web") {
+    if (globalThis.confirm(`${title}\n\n${message}`)) onConfirm();
+    return;
+  }
+  Alert.alert(title, message, [
+    { text: "Abbrechen", style: "cancel" },
+    { text: confirmLabel, style: "destructive", onPress: onConfirm },
+  ]);
+}
 
 export default function DareScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -33,9 +60,16 @@ export default function DareScreen() {
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
   const highlightId = highlight ? Number(highlight) : null;
 
+  const { session } = useAuth();
+  const myId = session?.user.id;
+
   const [dares, setDares] = useState<MyDares | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Dare whose button is currently working (disables the other buttons)
+  const [busyId, setBusyId] = useState<number | null>(null);
+  // Dare that was just accepted: glows once in "Offene Dares"
+  const [acceptedId, setAcceptedId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -71,6 +105,59 @@ export default function DareScreen() {
     setRefreshing(false);
   }
 
+  /** Runs a dare action, then reloads the lists. */
+  async function run(dare: Dare, action: () => Promise<unknown>) {
+    setBusyId(dare.id);
+    setError(null);
+    try {
+      await action();
+      await load();
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
+      await load(); // e.g. the other person already answered
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function accept(dare: Dare) {
+    if (await run(dare, () => respondToDare(dare.id, true))) {
+      setAcceptedId(dare.id);
+      setTimeout(() => setAcceptedId(null), HIGHLIGHT_MS);
+    }
+  }
+
+  function decline(dare: Dare) {
+    confirm(
+      "Dare ablehnen?",
+      `${personName(dare.creator)} sieht, dass du abgelehnt hast.`,
+      "Ablehnen",
+      () => run(dare, () => respondToDare(dare.id, false)),
+    );
+  }
+
+  function withdraw(dare: Dare) {
+    confirm(
+      "Dare zurückziehen?",
+      `Der Dare an ${personName(dare.assignee)} wird gelöscht.`,
+      "Zurückziehen",
+      () => run(dare, () => withdrawDare(dare.id)),
+    );
+  }
+
+  /** "An Max" / "Von Max" for dares between two people, nothing for your own. */
+  function otherPerson(dare: Dare) {
+    if (dare.creator_id === dare.assignee_id) return undefined;
+    return dare.creator_id === myId
+      ? `An ${personName(dare.assignee)}`
+      : `Von ${personName(dare.creator)}`;
+  }
+
+  const isBusy = (dare: Dare) => busyId === dare.id;
+  const isLocked = (dare: Dare) => busyId !== null && busyId !== dare.id;
+
   const contentPlatformStyle = Platform.select({
     android: {
       paddingTop: insets.top,
@@ -101,6 +188,38 @@ export default function DareScreen() {
             !error && <ActivityIndicator style={styles.loading} />
           ) : (
             <>
+              {/* Dares friends sent me: accept or decline */}
+              {dares.invitations.length > 0 && (
+                <ThemedView style={styles.section}>
+                  <ThemedText type="subtitle" style={styles.center}>
+                    Herausforderungen an dich
+                  </ThemedText>
+                  {dares.invitations.map((dare) => (
+                    <DareCard
+                      key={dare.id}
+                      dare={dare}
+                      subtitle={`Von ${personName(dare.creator)}`}
+                      actions={
+                        <>
+                          <ActionButton
+                            label="Ablehnen"
+                            variant="secondary"
+                            disabled={isBusy(dare) || isLocked(dare)}
+                            onPress={() => decline(dare)}
+                          />
+                          <ActionButton
+                            label="Annehmen"
+                            busy={isBusy(dare)}
+                            disabled={isLocked(dare)}
+                            onPress={() => accept(dare)}
+                          />
+                        </>
+                      }
+                    />
+                  ))}
+                </ThemedView>
+              )}
+
               <ThemedView style={styles.section}>
                 <ThemedText type="subtitle">Offene Dares</ThemedText>
                 {dares.open.length === 0 ? (
@@ -112,7 +231,10 @@ export default function DareScreen() {
                     <DareCard
                       key={dare.id}
                       dare={dare}
-                      highlight={dare.id === highlightId}
+                      subtitle={otherPerson(dare)}
+                      highlight={
+                        dare.id === highlightId || dare.id === acceptedId
+                      }
                     />
                   ))
                 )}
@@ -128,6 +250,15 @@ export default function DareScreen() {
                       dare={dare}
                       subtitle={`An ${personName(dare.assignee)}`}
                       highlight={dare.id === highlightId}
+                      actions={
+                        <ActionButton
+                          label="Zurückziehen"
+                          variant="danger"
+                          busy={isBusy(dare)}
+                          disabled={isLocked(dare)}
+                          onPress={() => withdraw(dare)}
+                        />
+                      }
                     />
                   ))}
                 </ThemedView>
@@ -141,7 +272,11 @@ export default function DareScreen() {
                   </ThemedText>
                 ) : (
                   dares.done.map((dare) => (
-                    <DareCard key={dare.id} dare={dare} />
+                    <DareCard
+                      key={dare.id}
+                      dare={dare}
+                      subtitle={otherPerson(dare)}
+                    />
                   ))
                 )}
               </ThemedView>
@@ -173,6 +308,9 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     alignItems: "center",
     paddingVertical: Spacing.five,
+  },
+  center: {
+    textAlign: "center",
   },
   loading: {
     marginTop: Spacing.six,

@@ -1,5 +1,5 @@
 import type { Dare } from "@/../utils/dares";
-import { useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -35,11 +35,14 @@ export function DareCard({
   dare,
   highlight = false,
   subtitle,
+  actions,
 }: {
   dare: Dare;
   highlight?: boolean;
   /** Extra line above the title, e.g. "An Max" */
   subtitle?: string;
+  /** Buttons shown at the bottom of the card */
+  actions?: ReactNode;
 }) {
   const theme = useTheme();
   const glow = useSharedValue(0);
@@ -89,16 +92,24 @@ export function DareCard({
           style={isOverdue ? styles.overdue : undefined}
           themeColor={isOverdue ? undefined : "textSecondary"}
         >
-          {dare.status === "open"
+          {/* Running and invited dares show their deadline, others their result */}
+          {dare.status === "open" || dare.status === "pending"
             ? `${isOverdue ? "Überfällig seit" : "Fällig bis"} ${formatDeadline(dare.deadline)}`
             : STATUS_LABEL[dare.status]}
         </ThemedText>
+        {actions && <View style={styles.actions}>{actions}</View>}
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
   card: {
     alignSelf: "stretch",
     borderRadius: Spacing.three,
