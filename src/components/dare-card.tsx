@@ -1,6 +1,6 @@
 import type { Dare } from "@/../utils/dares";
 import { type ReactNode, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -25,6 +25,7 @@ function formatDeadline(iso: string) {
 
 const STATUS_LABEL = {
   pending: "Wartet auf Antwort",
+  submitted: "Beweis eingereicht – wartet auf Bestätigung",
   declined: "Abgelehnt",
   completed: "✓ Geschafft",
   failed: "✗ Nicht geschafft",
@@ -36,6 +37,7 @@ export function DareCard({
   highlight = false,
   subtitle,
   actions,
+  onPress,
 }: {
   dare: Dare;
   highlight?: boolean;
@@ -43,6 +45,8 @@ export function DareCard({
   subtitle?: string;
   /** Buttons shown at the bottom of the card */
   actions?: ReactNode;
+  /** Makes the card tappable, e.g. to open the detail screen */
+  onPress?: () => void;
 }) {
   const theme = useTheme();
   const glow = useSharedValue(0);
@@ -75,7 +79,13 @@ export function DareCard({
       {/* Highlight layer: an orange outline + tint that fades out */}
       <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
 
-      <View style={styles.content}>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? "button" : undefined}
+        accessibilityHint={onPress ? "Öffnet den Dare" : undefined}
+        style={({ pressed }) => [styles.content, pressed && styles.pressed]}
+      >
         {subtitle && (
           <ThemedText type="small" themeColor="textSecondary">
             {subtitle}
@@ -98,12 +108,15 @@ export function DareCard({
             : STATUS_LABEL[dare.status]}
         </ThemedText>
         {actions && <View style={styles.actions}>{actions}</View>}
-      </View>
+      </Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  pressed: {
+    opacity: 0.7,
+  },
   actions: {
     flexDirection: "row",
     justifyContent: "flex-end",

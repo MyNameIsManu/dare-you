@@ -147,6 +147,10 @@ export default function DareScreen() {
     );
   }
 
+  function openDare(dare: Dare) {
+    router.push({ pathname: "/dares/[id]", params: { id: String(dare.id) } });
+  }
+
   /** "An Max" / "Von Max" for dares between two people, nothing for your own. */
   function otherPerson(dare: Dare) {
     if (dare.creator_id === dare.assignee_id) return undefined;
@@ -196,6 +200,7 @@ export default function DareScreen() {
                   </ThemedText>
                   {dares.invitations.map((dare) => (
                     <DareCard
+                      onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
                       subtitle={`Von ${personName(dare.creator)}`}
@@ -220,6 +225,27 @@ export default function DareScreen() {
                 </ThemedView>
               )}
 
+              {/* Proof from a friend for a dare I created: I decide */}
+              {dares.toReview.length > 0 && (
+                <ThemedView style={styles.section}>
+                  <ThemedText type="subtitle">Zu prüfen</ThemedText>
+                  {dares.toReview.map((dare) => (
+                    <DareCard
+                      key={dare.id}
+                      dare={dare}
+                      subtitle={`Beweis von ${personName(dare.assignee)}`}
+                      onPress={() => openDare(dare)}
+                      actions={
+                        <ActionButton
+                          label="Ansehen"
+                          onPress={() => openDare(dare)}
+                        />
+                      }
+                    />
+                  ))}
+                </ThemedView>
+              )}
+
               <ThemedView style={styles.section}>
                 <ThemedText type="subtitle">Offene Dares</ThemedText>
                 {dares.open.length === 0 ? (
@@ -229,6 +255,7 @@ export default function DareScreen() {
                 ) : (
                   dares.open.map((dare) => (
                     <DareCard
+                      onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
                       subtitle={otherPerson(dare)}
@@ -246,6 +273,7 @@ export default function DareScreen() {
                   <ThemedText type="subtitle">Wartet auf Antwort</ThemedText>
                   {dares.sent.map((dare) => (
                     <DareCard
+                      onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
                       subtitle={`An ${personName(dare.assignee)}`}
@@ -273,6 +301,7 @@ export default function DareScreen() {
                 ) : (
                   dares.done.map((dare) => (
                     <DareCard
+                      onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
                       subtitle={otherPerson(dare)}

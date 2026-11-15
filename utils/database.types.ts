@@ -90,6 +90,8 @@ export type Database = {
           deadline: string
           description: string | null
           id: number
+          proof_path: string | null
+          proof_submitted_at: string | null
           status: string
           title: string
           visibility: string
@@ -102,6 +104,8 @@ export type Database = {
           deadline: string
           description?: string | null
           id?: never
+          proof_path?: string | null
+          proof_submitted_at?: string | null
           status?: string
           title: string
           visibility?: string
@@ -114,6 +118,8 @@ export type Database = {
           deadline?: string
           description?: string | null
           id?: never
+          proof_path?: string | null
+          proof_submitted_at?: string | null
           status?: string
           title?: string
           visibility?: string
@@ -204,13 +210,22 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { a: string; b: string }; Returns: boolean }
+      fail_overdue_dares: { Args: never; Returns: undefined }
       is_username_available: { Args: { name: string }; Returns: boolean }
       respond_to_dare: {
         Args: { accept: boolean; target_dare_id: number }
         Returns: string
       }
+      review_dare_proof: {
+        Args: { approve: boolean; target_dare_id: number }
+        Returns: string
+      }
       send_friend_request: {
         Args: { target_username: string }
+        Returns: string
+      }
+      submit_dare_proof: {
+        Args: { image_path: string; target_dare_id: number }
         Returns: string
       }
     }

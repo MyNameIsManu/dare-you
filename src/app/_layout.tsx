@@ -28,6 +28,10 @@ function RootNavigator() {
             name="profile/[id]"
             options={{ title: "Profile", headerBackTitle: "Back" }}
           />
+          <Stack.Screen
+            name="dares/[id]"
+            options={{ title: "Dare", headerBackTitle: "Zurück" }}
+          />
         </Stack.Protected>
 
         {/* Only reachable when logged out */}

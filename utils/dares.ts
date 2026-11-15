@@ -15,8 +15,12 @@ export type Dare = {
   title: string;
   description: string | null;
   deadline: string;
-  status: "pending" | "open" | "declined" | "completed" | "failed";
+  status:
+    "pending" | "open" | "submitted" | "declined" | "completed" | "failed";
   created_at: string;
+  completed_at: string | null;
+  proof_path: string | null; // photo in the "dare-proofs" bucket
+  proof_submitted_at: string | null;
   creator_id: string;
   assignee_id: string;
   creator: DarePerson | null;
@@ -33,10 +37,16 @@ export function personName(p: DarePerson | null) {
   return p?.display_name ?? (p?.username ? `@${p.username}` : "Unbekannt");
 }
 
+const DARE_FIELDS = `id, title, description, deadline, status, created_at,
+  completed_at, proof_path, proof_submitted_at, creator_id, assignee_id,
+  creator:profiles!dares_creator_id_fkey(username, display_name),
+  assignee:profiles!dares_assignee_id_fkey(username, display_name)`;
+
 export type MyDares = {
   invitations: Dare[]; // pending, sent to me: I have to accept or decline
   sent: Dare[]; // pending, I sent them: waiting for my friend's answer
-  open: Dare[]; // accepted and running, soonest deadline first
+  toReview: Dare[]; // proof submitted for a dare I created: I decide
+  open: Dare[]; // running (incl. my proof waiting for review), soonest deadline first
   declined: Dare[]; // my dares that a friend declined
   done: Dare[]; // completed or failed, newest first
 };
@@ -47,11 +57,7 @@ export async function getMyDares(): Promise<MyDares> {
 
   const { data, error } = await supabase
     .from("dares")
-    .select(
-      `id, title, description, deadline, status, created_at, creator_id, assignee_id,
-       creator:profiles!dares_creator_id_fkey(username, display_name),
-       assignee:profiles!dares_assignee_id_fkey(username, display_name)`,
-    )
+    .select(DARE_FIELDS)
     .or(`assignee_id.eq.${myId},creator_id.eq.${myId}`)
     .order("deadline", { ascending: true });
 
@@ -62,7 +68,14 @@ export async function getMyDares(): Promise<MyDares> {
   return {
     invitations: pending.filter((d) => d.assignee_id === myId),
     sent: pending.filter((d) => d.creator_id === myId),
-    open: dares.filter((d) => d.status === "open"),
+    toReview: dares.filter(
+      (d) => d.status === "submitted" && d.creator_id === myId,
+    ),
+    open: dares.filter(
+      (d) =>
+        d.status === "open" ||
+        (d.status === "submitted" && d.assignee_id === myId),
+    ),
     declined: dares.filter((d) => d.status === "declined"),
     done: dares
       .filter((d) => d.status === "completed" || d.status === "failed")
@@ -138,4 +151,76 @@ export async function withdrawDare(dareId: number) {
   if (data.length === 0) {
     throw new Error("Dein Freund hat bereits geantwortet.");
   }
+}
+
+/** One dare by id, or null if it doesn't exist or isn't visible to me. */
+export async function getDare(id: number): Promise<Dare | null> {
+  const { data, error } = await supabase
+    .from("dares")
+    .select(DARE_FIELDS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw toError(error);
+  return data as Dare | null;
+}
+
+const PROOF_BUCKET = "dare-proofs";
+
+const EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/heic": "heic",
+  "image/webp": "webp",
+};
+
+/**
+ * Upload a proof photo and submit it.
+ * Returns "submitted" (friend dare, creator decides) or "completed" (own dare).
+ */
+export async function submitDareProof(
+  dareId: number,
+  photo: { uri: string; mimeType?: string | null },
+) {
+  const contentType = photo.mimeType ?? "image/jpeg";
+  const ext = EXTENSIONS[contentType] ?? "jpg";
+  // New name every time: a rejected photo is never overwritten
+  const path = `${dareId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  // Read the picked file (file:// on mobile, blob: on web) as raw bytes
+  const body = await (await fetch(photo.uri)).arrayBuffer();
+
+  const { error: uploadError } = await supabase.storage
+    .from(PROOF_BUCKET)
+    .upload(path, body, { contentType, upsert: false });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data, error } = await supabase.rpc("submit_dare_proof", {
+    target_dare_id: dareId,
+    image_path: path,
+  });
+  if (error) throw toError(error);
+  return data as "submitted" | "completed";
+}
+
+/**
+ * Creator's decision on a submitted proof.
+ * Returns "completed", "open" (rejected, try again) or "failed" (rejected after the deadline).
+ */
+export async function reviewDareProof(dareId: number, approve: boolean) {
+  const { data, error } = await supabase.rpc("review_dare_proof", {
+    target_dare_id: dareId,
+    approve,
+  });
+  if (error) throw toError(error);
+  return data as "completed" | "open" | "failed";
+}
+
+/** Temporary URL (1 hour) for showing a proof photo from the private bucket. */
+export async function getProofUrl(path: string) {
+  const { data, error } = await supabase.storage
+    .from(PROOF_BUCKET)
+    .createSignedUrl(path, 60 * 60);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
 }

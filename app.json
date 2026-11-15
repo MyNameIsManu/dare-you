@@ -26,6 +26,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "DareYou braucht Zugriff auf deine Fotos, damit du ein Beweisfoto für einen Dare auswählen kannst.",
+          "cameraPermission": "DareYou braucht Zugriff auf deine Kamera, damit du ein Beweisfoto für einen Dare aufnehmen kannst.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
