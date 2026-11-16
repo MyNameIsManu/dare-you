@@ -7,10 +7,11 @@ import {
   submitDareProof,
   type Dare,
 } from "@/../utils/dares";
+import { useDares } from "@/../utils/dares-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -68,6 +69,10 @@ export default function DareDetailScreen() {
       load();
     }, [load]),
   );
+
+  // Live: reload when one of my dares changes (e.g. the friend submits proof)
+  const { onDareChange } = useDares();
+  useEffect(() => onDareChange(load), [onDareChange, load]);
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);

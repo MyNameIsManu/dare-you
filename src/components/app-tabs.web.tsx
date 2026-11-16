@@ -11,12 +11,16 @@ import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 
 import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 
+import { useDares } from "@/../utils/dares-context";
+
 import { ExternalLink } from "./external-link";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
 
 /** Web tab bar (headless tabs). Keep in sync with the native tabs in app-tabs.tsx. */
 export default function AppTabs() {
+  const { waitingForMe } = useDares();
+
   return (
     <Tabs>
       <TabSlot style={{ height: "100%" }} />
@@ -26,7 +30,7 @@ export default function AppTabs() {
             <TabButton>Home</TabButton>
           </TabTrigger>
           <TabTrigger name="dare" href="/dare" asChild>
-            <TabButton>Dares</TabButton>
+            <TabButton badge={waitingForMe}>Dares</TabButton>
           </TabTrigger>
           <TabTrigger name="create" href="/create" asChild>
             <TabButton>Neu</TabButton>
@@ -43,8 +47,9 @@ export default function AppTabs() {
 export function TabButton({
   children,
   isFocused,
+  badge = 0,
   ...props
-}: TabTriggerSlotProps) {
+}: TabTriggerSlotProps & { badge?: number }) {
   return (
     <Pressable
       {...props}
@@ -61,6 +66,13 @@ export function TabButton({
         >
           {children}
         </ThemedText>
+        {badge > 0 && (
+          <View style={styles.badge} accessibilityLabel={`${badge} neu`}>
+            <ThemedText type="smallBold" style={styles.badgeText}>
+              {badge > 9 ? "9+" : badge}
+            </ThemedText>
+          </View>
+        )}
       </ThemedView>
     </Pressable>
   );
@@ -95,6 +107,20 @@ export function CustomTabList(props: TabListProps) {
 }
 
 const styles = StyleSheet.create({
+  badge: {
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    borderRadius: 9,
+    backgroundColor: "#E5484D",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: "#ffffff",
+    fontSize: 11,
+    lineHeight: 14,
+  },
   tabListContainer: {
     position: "absolute",
     width: "100%",
@@ -120,6 +146,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   tabButtonView: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,

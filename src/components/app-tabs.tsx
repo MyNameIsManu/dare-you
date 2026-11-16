@@ -1,3 +1,4 @@
+import { useDares } from "@/../utils/dares-context";
 import { NativeTabs } from "expo-router/native-tabs";
 import { useColorScheme } from "react-native";
 
@@ -6,6 +7,7 @@ import { Colors } from "@/constants/theme";
 export default function AppTabs() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === "dark" ? "dark" : "light"];
+  const { waitingForMe } = useDares();
 
   return (
     <NativeTabs
@@ -23,6 +25,12 @@ export default function AppTabs() {
 
       <NativeTabs.Trigger name="dare">
         <NativeTabs.Trigger.Label>Dares</NativeTabs.Trigger.Label>
+        {/* Invitations + proofs to review: things waiting for me */}
+        {waitingForMe > 0 && (
+          <NativeTabs.Trigger.Badge>
+            {waitingForMe > 9 ? "9+" : String(waitingForMe)}
+          </NativeTabs.Trigger.Badge>
+        )}
         <NativeTabs.Trigger.Icon
           sf={{ default: "flame", selected: "flame.fill" }}
           md="local_fire_department"

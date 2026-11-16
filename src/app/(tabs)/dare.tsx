@@ -1,12 +1,11 @@
 import { useAuth } from "@/../utils/auth-context";
 import {
-  getMyDares,
   personName,
   respondToDare,
   withdrawDare,
   type Dare,
-  type MyDares,
 } from "@/../utils/dares";
+import { useDares } from "@/../utils/dares-context";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -63,26 +62,17 @@ export default function DareScreen() {
   const { session } = useAuth();
   const myId = session?.user.id;
 
-  const [dares, setDares] = useState<MyDares | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Shared, live-updated lists (see utils/dares-context.tsx)
+  const { dares, error: loadError, reload: load } = useDares();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const error = actionError ?? loadError;
   const [refreshing, setRefreshing] = useState(false);
   // Dare whose button is currently working (disables the other buttons)
   const [busyId, setBusyId] = useState<number | null>(null);
   // Dare that was just accepted: glows once in "Offene Dares"
   const [acceptedId, setAcceptedId] = useState<number | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setDares(await getMyDares());
-      setError(null);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Dares konnten nicht geladen werden",
-      );
-    }
-  }, []);
-
-  // Reload every time the tab is shown, so new dares appear right away
+  // Also reload when the tab is shown (a fallback if Realtime is unavailable)
   useFocusEffect(
     useCallback(() => {
       load();
@@ -108,13 +98,15 @@ export default function DareScreen() {
   /** Runs a dare action, then reloads the lists. */
   async function run(dare: Dare, action: () => Promise<unknown>) {
     setBusyId(dare.id);
-    setError(null);
+    setActionError(null);
     try {
       await action();
       await load();
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
+      setActionError(
+        e instanceof Error ? e.message : "Etwas ist schiefgelaufen",
+      );
       await load(); // e.g. the other person already answered
       return false;
     } finally {

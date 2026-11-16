@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from "@/../utils/auth-context";
+import { DaresProvider } from "@/../utils/dares-context";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "react-native";
@@ -6,7 +7,10 @@ import { useColorScheme } from "react-native";
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      {/* Live "my dares" for every screen (tabs, badge, detail) */}
+      <DaresProvider>
+        <RootNavigator />
+      </DaresProvider>
     </AuthProvider>
   );
 }
