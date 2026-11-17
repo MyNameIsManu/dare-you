@@ -3,6 +3,7 @@ import {
   sendFriendRequest,
   type PublicProfile,
 } from "@/../utils/friends";
+import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +17,8 @@ import {
 import { FriendLists } from "@/components/friend-lists";
 import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 const STATUS_TEXT = {
   requested: "Request sent",
@@ -25,7 +28,9 @@ const STATUS_TEXT = {
 } as const;
 
 export function FriendSearch() {
+  const theme = useTheme();
   const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
   const [results, setResults] = useState<PublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,17 +87,34 @@ export function FriendSearch() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchRow}>
+      <View
+        style={[
+          styles.searchBar,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: focused ? theme.textSecondary : "transparent",
+          },
+        ]}
+      >
+        <SymbolView
+          name={{ ios: "magnifyingglass", android: "search", web: "search" }}
+          size={18}
+          tintColor={theme.textSecondary}
+        />
         <TextInput
-          style={styles.input}
-          placeholder="Search by username"
+          style={[styles.input, { color: theme.text }]}
+          placeholder="Nach Nutzername suchen"
+          placeholderTextColor={theme.textSecondary}
           value={query}
           onChangeText={setQuery}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
+          returnKeyType="search"
         />
-        {loading && <ActivityIndicator style={styles.spinner} />}
+        {loading && <ActivityIndicator size="small" />}
       </View>
 
       {/* Empty search field: show my friends and requests instead */}
@@ -133,19 +155,23 @@ export function FriendSearch() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  searchRow: { flexDirection: "row", alignItems: "center" },
+  container: { flex: 1 },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    height: 44,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 22,
+    borderWidth: 1,
+  },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    height: "100%",
     fontSize: 16,
-    backgroundColor: "#fff",
+    // Hide the browser's default focus ring; the bar's border shows focus instead
+    ...({ outlineStyle: "none" } as object),
   },
-  spinner: { marginLeft: 10 },
   error: { color: "#c62828", marginTop: 8 },
   empty: { textAlign: "center", marginTop: 24 },
   status: { color: "#2e7d32", fontSize: 14 },

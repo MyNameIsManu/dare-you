@@ -1,64 +1,61 @@
-import { SafeAreaView, StyleSheet } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FriendSearch } from "@/components/friend-search";
-import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { ThemedText } from "@/components/themed-text";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+
+/** Narrower than the other tabs: a search field + list reads better compact. */
+const FriendsContentWidth = Math.min(560, MaxContentWidth);
 
 export default function FriendsScreen() {
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+
+  // Web: the tab bar floats over the top of the page, so leave room for it.
+  // Native: respect the notch on top and the tab bar at the bottom.
+  const platformPadding = Platform.select({
+    web: {
+      paddingTop: Spacing.six + Spacing.four,
+      paddingBottom: Spacing.four,
+    },
+    default: {
+      paddingTop: insets.top + Spacing.three,
+      paddingBottom: insets.bottom + BottomTabInset,
+    },
+  });
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <FriendSearch />
-    </SafeAreaView>
+    <View
+      style={[
+        styles.screen,
+        { backgroundColor: theme.background },
+        platformPadding,
+      ]}
+    >
+      <View style={styles.container}>
+        <ThemedText type="subtitle" style={styles.title}>
+          Freunde
+        </ThemedText>
+        <FriendSearch />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  scrollView: {
+  screen: {
     flex: 1,
-  },
-  contentContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    alignItems: "center",
   },
   container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: "center",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: "center",
-  },
-  linkButton: {
-    flexDirection: "row",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: "center",
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: "center",
-  },
-  imageTutorial: {
+    flex: 1,
     width: "100%",
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+    maxWidth: FriendsContentWidth,
+    paddingHorizontal: Spacing.four,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: "center",
+  title: {
+    marginBottom: Spacing.three,
   },
 });

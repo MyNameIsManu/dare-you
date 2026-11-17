@@ -23,7 +23,6 @@ import { DareCard } from "@/components/dare-card";
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -303,8 +302,6 @@ export default function DareScreen() {
               </ThemedView>
             </>
           )}
-
-          {Platform.OS === "web" && <WebBadge />}
         </ThemedView>
       </ScrollView>
     </View>

@@ -23,7 +23,6 @@ import { FriendPicker } from "@/components/friend-picker";
 import { SegmentedControl } from "@/components/segmented-control";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -233,7 +232,6 @@ export default function CreateScreen() {
               {error && <ThemedText style={styles.error}>{error}</ThemedText>}
             </Animated.View>
           </ThemedView>
-          {Platform.OS === "web" && <WebBadge />}
         </ThemedView>
       </ScrollView>
     </View>
