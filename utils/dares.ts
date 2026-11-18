@@ -18,6 +18,7 @@ export type Dare = {
   status:
     "pending" | "open" | "submitted" | "declined" | "completed" | "failed";
   created_at: string;
+  accepted_at: string | null; // start of the dare; null while pending/declined
   completed_at: string | null;
   proof_path: string | null; // photo in the "dare-proofs" bucket
   proof_submitted_at: string | null;
@@ -38,7 +39,7 @@ export function personName(p: DarePerson | null) {
 }
 
 const DARE_FIELDS = `id, title, description, deadline, status, created_at,
-  completed_at, proof_path, proof_submitted_at, creator_id, assignee_id,
+  accepted_at, completed_at, proof_path, proof_submitted_at, creator_id, assignee_id,
   creator:profiles!dares_creator_id_fkey(username, display_name),
   assignee:profiles!dares_assignee_id_fkey(username, display_name)`;
 

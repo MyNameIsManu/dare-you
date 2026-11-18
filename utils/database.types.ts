@@ -83,6 +83,7 @@ export type Database = {
       }
       dares: {
         Row: {
+          accepted_at: string | null
           assignee_id: string
           completed_at: string | null
           created_at: string
@@ -97,6 +98,7 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          accepted_at?: string | null
           assignee_id: string
           completed_at?: string | null
           created_at?: string
@@ -111,6 +113,7 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          accepted_at?: string | null
           assignee_id?: string
           completed_at?: string | null
           created_at?: string
