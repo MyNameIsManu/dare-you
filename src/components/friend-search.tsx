@@ -21,10 +21,10 @@ import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 const STATUS_TEXT = {
-  requested: "Request sent",
-  accepted: "You are now friends",
-  already_requested: "Already requested",
-  already_friends: "Already friends",
+  requested: "Anfrage gesendet",
+  accepted: "Ihr seid jetzt befreundet",
+  already_requested: "Bereits angefragt",
+  already_friends: "Bereits befreundet",
 } as const;
 
 export function FriendSearch() {
@@ -34,7 +34,7 @@ export function FriendSearch() {
   const [results, setResults] = useState<PublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Per-user feedback after tapping "Add", keyed by profile id
+  // Per-user feedback after tapping "Hinzufügen", keyed by profile id
   const [sent, setSent] = useState<Record<string, string>>({});
 
   const isSearching = query.trim().length >= 2;
@@ -59,7 +59,7 @@ export function FriendSearch() {
         }
       } catch (e) {
         if (!cancelled)
-          setError(e instanceof Error ? e.message : "Search failed");
+          setError(e instanceof Error ? e.message : "Suche fehlgeschlagen");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -80,7 +80,8 @@ export function FriendSearch() {
     } catch (e) {
       setSent((prev) => ({
         ...prev,
-        [profile.id]: e instanceof Error ? e.message : "Something went wrong",
+        [profile.id]:
+          e instanceof Error ? e.message : "Etwas ist schiefgelaufen",
       }));
     }
   }
@@ -131,7 +132,7 @@ export function FriendSearch() {
             ListEmptyComponent={
               !loading && !error ? (
                 <ThemedText themeColor="textSecondary" style={styles.empty}>
-                  No users found
+                  Keine Nutzer gefunden
                 </ThemedText>
               ) : undefined
             }
@@ -142,7 +143,10 @@ export function FriendSearch() {
                   sent[item.id] ? (
                     <Text style={styles.status}>{sent[item.id]}</Text>
                   ) : (
-                    <ActionButton label="Add" onPress={() => handleAdd(item)} />
+                    <ActionButton
+                      label="Hinzufügen"
+                      onPress={() => handleAdd(item)}
+                    />
                   )
                 }
               />

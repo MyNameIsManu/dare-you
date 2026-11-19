@@ -33,7 +33,7 @@ export default function SignInScreen() {
     setInfo(null);
 
     if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
+      setError("Bitte gib deine E-Mail und dein Passwort ein.");
       return;
     }
 
@@ -43,12 +43,12 @@ export default function SignInScreen() {
       const cleanUsername = username.trim().toLowerCase();
 
       if (!displayName.trim()) {
-        setError("Please enter a display name.");
+        setError("Bitte gib einen Anzeigenamen ein.");
         setLoading(false);
         return;
       }
       if (!USERNAME_PATTERN.test(cleanUsername)) {
-        setError("Username: 3–30 characters, only a–z, 0–9 and _.");
+        setError("Nutzername: 3–30 Zeichen, nur a–z, 0–9 und _.");
         setLoading(false);
         return;
       }
@@ -63,7 +63,7 @@ export default function SignInScreen() {
         return;
       }
       if (!available) {
-        setError("This username is already taken.");
+        setError("Dieser Nutzername ist schon vergeben.");
         setLoading(false);
         return;
       }
@@ -78,7 +78,9 @@ export default function SignInScreen() {
       });
       if (error) setError(error.message);
       else if (!data.session)
-        setInfo("Check your inbox to confirm your email, then sign in.");
+        setInfo(
+          "Bestätige deine E-Mail über den Link in deinem Postfach und melde dich dann an.",
+        );
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -105,7 +107,7 @@ export default function SignInScreen() {
       >
         <Text style={styles.title}>DareYou</Text>
         <Text style={styles.subtitle}>
-          {isSignUp ? "Create your account" : "Welcome back"}
+          {isSignUp ? "Konto erstellen" : "Willkommen zurück"}
         </Text>
 
         <View style={styles.form}>
@@ -113,7 +115,7 @@ export default function SignInScreen() {
             <>
               <TextInput
                 style={styles.input}
-                placeholder="Display name"
+                placeholder="Anzeigename"
                 value={displayName}
                 onChangeText={setDisplayName}
                 autoComplete="name"
@@ -121,7 +123,7 @@ export default function SignInScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Username (how friends find you)"
+                placeholder="Nutzername (so finden dich Freunde)"
                 value={username}
                 onChangeText={(text) => setUsername(text.toLowerCase())}
                 autoCapitalize="none"
@@ -134,7 +136,7 @@ export default function SignInScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="E-Mail"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -146,7 +148,7 @@ export default function SignInScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Passwort"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -169,7 +171,7 @@ export default function SignInScreen() {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.buttonText}>
-                {isSignUp ? "Sign up" : "Sign in"}
+                {isSignUp ? "Registrieren" : "Anmelden"}
               </Text>
             )}
           </Pressable>
@@ -177,8 +179,8 @@ export default function SignInScreen() {
           <Pressable onPress={switchMode} disabled={loading}>
             <Text style={styles.switchText}>
               {isSignUp
-                ? "Already have an account? Sign in"
-                : "New here? Create an account"}
+                ? "Schon ein Konto? Anmelden"
+                : "Neu hier? Konto erstellen"}
             </Text>
           </Pressable>
         </View>

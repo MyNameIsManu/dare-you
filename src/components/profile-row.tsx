@@ -25,7 +25,7 @@ export function ProfileRow({
       >
         <Pressable
           accessibilityRole="link"
-          accessibilityHint="Opens this profile"
+          accessibilityHint="Öffnet dieses Profil"
           style={({ pressed }) => [styles.names, pressed && styles.pressed]}
         >
           <ThemedText style={styles.displayName} numberOfLines={1}>

@@ -21,9 +21,9 @@ import { Spacing } from "@/constants/theme";
 type SectionKey = "incoming" | "friends" | "outgoing";
 
 const TITLES: Record<SectionKey, string> = {
-  incoming: "Friend requests",
-  friends: "Friends",
-  outgoing: "Requested",
+  incoming: "Freundschaftsanfragen",
+  friends: "Freunde",
+  outgoing: "Gesendete Anfragen",
 };
 
 /** My friends, requests I received, and requests I sent. */
@@ -39,7 +39,9 @@ export function FriendLists() {
       setLists(await getFriendLists());
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load friends");
+      setError(
+        e instanceof Error ? e.message : "Freunde konnten nicht geladen werden",
+      );
     }
   }, []);
 
@@ -65,7 +67,7 @@ export function FriendLists() {
       await action(entry.friendshipId);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
     } finally {
       setBusyId(null);
     }
@@ -79,7 +81,7 @@ export function FriendLists() {
     );
   }
 
-  // Hide empty request sections; always show "Friends" so the empty hint has a home
+  // Hide empty request sections; always show "Freunde" so the empty hint has a home
   const sections = (["incoming", "friends", "outgoing"] as const)
     .filter((key) => key === "friends" || lists[key].length > 0)
     .map((key) => ({ key, title: TITLES[key], data: lists[key] }));
@@ -114,7 +116,8 @@ export function FriendLists() {
             themeColor="textSecondary"
             style={styles.empty}
           >
-            No friends yet. Search for a username above to add someone.
+            Noch keine Freunde. Suche oben nach einem Nutzernamen, um jemanden
+            hinzuzufügen.
           </ThemedText>
         ) : null
       }
@@ -129,13 +132,13 @@ export function FriendLists() {
               right={
                 <>
                   <ActionButton
-                    label="Decline"
+                    label="Ablehnen"
                     variant="secondary"
                     disabled={busy || disabled}
                     onPress={() => run(item, removeFriendship)}
                   />
                   <ActionButton
-                    label="Accept"
+                    label="Annehmen"
                     busy={busy}
                     disabled={disabled}
                     onPress={() => run(item, acceptFriendRequest)}
@@ -152,7 +155,7 @@ export function FriendLists() {
               profile={item.profile}
               right={
                 <ActionButton
-                  label="Cancel"
+                  label="Zurückziehen"
                   variant="secondary"
                   busy={busy}
                   disabled={disabled}

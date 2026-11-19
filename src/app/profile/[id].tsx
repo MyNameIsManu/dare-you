@@ -24,7 +24,11 @@ export default function ProfileScreen() {
       })
       .catch((e) => {
         if (!cancelled)
-          setError(e instanceof Error ? e.message : "Could not load profile");
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Profil konnte nicht geladen werden",
+          );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -42,7 +46,7 @@ export default function ProfileScreen() {
       {/* Header title follows the loaded name */}
       <Stack.Screen
         options={{
-          title: profile?.username ? `@${profile.username}` : "Profile",
+          title: profile?.username ? `@${profile.username}` : "Profil",
         }}
       />
 
@@ -56,7 +60,9 @@ export default function ProfileScreen() {
         ) : error ? (
           <ThemedText style={styles.error}>{error}</ThemedText>
         ) : !profile ? (
-          <ThemedText themeColor="textSecondary">User not found</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            Nutzer nicht gefunden
+          </ThemedText>
         ) : (
           <View style={styles.header}>
             <View

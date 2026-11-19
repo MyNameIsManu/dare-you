@@ -24,10 +24,10 @@ const STATUS_LABEL: Record<
   Exclude<FriendshipStatus["kind"], "self">,
   string
 > = {
-  none: "Not friends yet",
-  outgoing: "Friend request sent",
-  incoming: "Wants to be your friend",
-  friends: "✓ Friends",
+  none: "Noch nicht befreundet",
+  outgoing: "Freundschaftsanfrage gesendet",
+  incoming: "Möchte mit dir befreundet sein",
+  friends: "✓ Befreundet",
 };
 
 /** Friendship status with the matching buttons, for a profile screen. */
@@ -41,7 +41,9 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
       setStatus(await getFriendshipWith(profile.id));
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load status");
+      setError(
+        e instanceof Error ? e.message : "Status konnte nicht geladen werden",
+      );
     }
   }, [profile.id]);
 
@@ -58,7 +60,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
       await action();
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
     } finally {
       setBusy(false);
     }
@@ -70,10 +72,14 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
     if (Platform.OS === "web") return remove();
 
     const name = profile.display_name ?? profile.username;
-    Alert.alert("Remove friend?", `${name} will no longer be your friend.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Remove", style: "destructive", onPress: remove },
-    ]);
+    Alert.alert(
+      "Freund entfernen?",
+      `${name} ist dann nicht mehr dein Freund.`,
+      [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Entfernen", style: "destructive", onPress: remove },
+      ],
+    );
   }
 
   if (!status) {
@@ -99,7 +105,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
       <View style={styles.buttons}>
         {status.kind === "none" && profile.username && (
           <ActionButton
-            label="Add friend"
+            label="Als Freund hinzufügen"
             busy={busy}
             onPress={() => run(() => sendFriendRequest(profile.username!))}
           />
@@ -107,7 +113,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
 
         {status.kind === "outgoing" && (
           <ActionButton
-            label="Cancel request"
+            label="Anfrage zurückziehen"
             variant="secondary"
             busy={busy}
             onPress={() => run(() => removeFriendship(status.friendshipId))}
@@ -117,13 +123,13 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
         {status.kind === "incoming" && (
           <>
             <ActionButton
-              label="Decline"
+              label="Ablehnen"
               variant="secondary"
               disabled={busy}
               onPress={() => run(() => removeFriendship(status.friendshipId))}
             />
             <ActionButton
-              label="Accept"
+              label="Annehmen"
               busy={busy}
               onPress={() =>
                 run(() => acceptFriendRequest(status.friendshipId))
@@ -134,7 +140,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
 
         {status.kind === "friends" && (
           <ActionButton
-            label="Remove friend"
+            label="Freund entfernen"
             variant="danger"
             busy={busy}
             onPress={() => confirmRemove(status.friendshipId)}
