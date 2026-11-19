@@ -1,3 +1,8 @@
+import {
+  UrgencyColors,
+  dareProgress,
+  progressLabel,
+} from "@/../utils/dare-progress";
 import type { Dare } from "@/../utils/dares";
 import { type ReactNode, useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -10,7 +15,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/themed-text";
+import { TimeProgressBar } from "@/components/time-progress-bar";
 import { Spacing } from "@/constants/theme";
+import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
 
 const HIGHLIGHT_COLOR = "#FF9F0A";
@@ -49,6 +56,7 @@ export function DareCard({
   onPress?: () => void;
 }) {
   const theme = useTheme();
+  const now = useNow();
   const glow = useSharedValue(0);
 
   useEffect(() => {
@@ -66,7 +74,10 @@ export function DareCard({
   }));
 
   const isOverdue =
-    dare.status === "open" && new Date(dare.deadline) < new Date();
+    dare.status === "open" && new Date(dare.deadline).getTime() < now;
+  // Only a running dare that's still on time gets the bar
+  const progress =
+    dare.status === "open" && !isOverdue ? dareProgress(dare, now) : null;
 
   return (
     <Animated.View
@@ -97,16 +108,33 @@ export function DareCard({
             {dare.description}
           </ThemedText>
         )}
-        <ThemedText
-          type="smallBold"
-          style={isOverdue ? styles.overdue : undefined}
-          themeColor={isOverdue ? undefined : "textSecondary"}
-        >
-          {/* Running and invited dares show their deadline, others their result */}
-          {dare.status === "open" || dare.status === "pending"
-            ? `${isOverdue ? "Überfällig seit" : "Fällig bis"} ${formatDeadline(dare.deadline)}`
-            : STATUS_LABEL[dare.status]}
-        </ThemedText>
+        {progress ? (
+          <View style={styles.progress}>
+            <TimeProgressBar progress={progress} />
+            <View style={styles.progressText}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Fällig bis {formatDeadline(dare.deadline)}
+              </ThemedText>
+              <ThemedText
+                type="smallBold"
+                style={{ color: UrgencyColors[progress.urgency] }}
+              >
+                {progressLabel(progress)}
+              </ThemedText>
+            </View>
+          </View>
+        ) : (
+          <ThemedText
+            type="smallBold"
+            style={isOverdue ? styles.overdue : undefined}
+            themeColor={isOverdue ? undefined : "textSecondary"}
+          >
+            {/* Running and invited dares show their deadline, others their result */}
+            {dare.status === "open" || dare.status === "pending"
+              ? `${isOverdue ? "Überfällig seit" : "Fällig bis"} ${formatDeadline(dare.deadline)}`
+              : STATUS_LABEL[dare.status]}
+          </ThemedText>
+        )}
         {actions && <View style={styles.actions}>{actions}</View>}
       </Pressable>
     </Animated.View>
@@ -143,6 +171,15 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 24,
     fontWeight: 600,
+  },
+  progress: {
+    gap: Spacing.one,
+    marginTop: Spacing.two,
+  },
+  progressText: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: Spacing.two,
   },
   overdue: {
     color: "#E5484D",

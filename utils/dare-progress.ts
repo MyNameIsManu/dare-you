@@ -58,3 +58,10 @@ export function formatRemaining(ms: number) {
   if (ms >= HOUR) return `${Math.floor(ms / HOUR)} Std.`;
   return `${Math.max(Math.floor(ms / 60000), 1)} Min.`;
 }
+
+/** "Tag 12 / 30", or "noch 5 Std." once less than 48 h are left. */
+export function progressLabel(progress: DareProgress) {
+  return progress.remainingMs < 2 * DAY
+    ? `noch ${formatRemaining(progress.remainingMs)}`
+    : `Tag ${progress.daysPassed} / ${progress.daysTotal}`;
+}
