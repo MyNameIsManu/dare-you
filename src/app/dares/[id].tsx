@@ -309,6 +309,10 @@ function statusText(
       return me.isCreator
         ? `${assignee} hat den Dare abgelehnt.`
         : "Du hast den Dare abgelehnt.";
+    case "expired":
+      return me.isCreator
+        ? `${assignee} hat den Dare nicht rechtzeitig angenommen.`
+        : "Du hast den Dare nicht vor der Frist angenommen.";
   }
 }
 

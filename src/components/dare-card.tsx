@@ -34,6 +34,7 @@ const STATUS_LABEL = {
   pending: "Wartet auf Antwort",
   submitted: "Beweis eingereicht – wartet auf Bestätigung",
   declined: "Abgelehnt",
+  expired: "⌛ Abgelaufen – nicht angenommen",
   completed: "✓ Geschafft",
   failed: "✗ Nicht geschafft",
 } as const;

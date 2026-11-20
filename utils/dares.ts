@@ -16,9 +16,15 @@ export type Dare = {
   description: string | null;
   deadline: string;
   status:
-    "pending" | "open" | "submitted" | "declined" | "completed" | "failed";
+    | "pending"
+    | "open"
+    | "submitted"
+    | "declined"
+    | "expired" // invitation not answered before the deadline
+    | "completed"
+    | "failed";
   created_at: string;
-  accepted_at: string | null; // start of the dare; null while pending/declined
+  accepted_at: string | null; // start of the dare; null while pending/declined/expired
   completed_at: string | null;
   proof_path: string | null; // photo in the "dare-proofs" bucket
   proof_submitted_at: string | null;
@@ -49,7 +55,7 @@ export type MyDares = {
   toReview: Dare[]; // proof submitted for a dare I created: I decide
   open: Dare[]; // running (incl. my proof waiting for review), soonest deadline first
   declined: Dare[]; // my dares that a friend declined
-  done: Dare[]; // completed or failed, newest first
+  done: Dare[]; // completed, failed or expired, newest first
 };
 
 /** Dares I have to do or that I created, grouped by status. */
@@ -79,7 +85,12 @@ export async function getMyDares(): Promise<MyDares> {
     ),
     declined: dares.filter((d) => d.status === "declined"),
     done: dares
-      .filter((d) => d.status === "completed" || d.status === "failed")
+      .filter(
+        (d) =>
+          d.status === "completed" ||
+          d.status === "failed" ||
+          d.status === "expired",
+      )
       .sort((a, b) => b.deadline.localeCompare(a.deadline)),
   };
 }
