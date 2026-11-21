@@ -54,8 +54,7 @@ export type MyDares = {
   sent: Dare[]; // pending, I sent them: waiting for my friend's answer
   toReview: Dare[]; // proof submitted for a dare I created: I decide
   open: Dare[]; // running (incl. my proof waiting for review), soonest deadline first
-  declined: Dare[]; // my dares that a friend declined
-  done: Dare[]; // completed, failed or expired, newest first
+  done: Dare[]; // finished: completed, failed, declined or expired, newest first
 };
 
 /** Dares I have to do or that I created, grouped by status. */
@@ -83,12 +82,12 @@ export async function getMyDares(): Promise<MyDares> {
         d.status === "open" ||
         (d.status === "submitted" && d.assignee_id === myId),
     ),
-    declined: dares.filter((d) => d.status === "declined"),
     done: dares
       .filter(
         (d) =>
           d.status === "completed" ||
           d.status === "failed" ||
+          d.status === "declined" ||
           d.status === "expired",
       )
       .sort((a, b) => b.deadline.localeCompare(a.deadline)),

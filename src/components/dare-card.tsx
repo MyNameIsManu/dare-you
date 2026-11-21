@@ -33,7 +33,7 @@ function formatDeadline(iso: string) {
 const STATUS_LABEL = {
   pending: "Wartet auf Antwort",
   submitted: "Beweis eingereicht – wartet auf Bestätigung",
-  declined: "Abgelehnt",
+  declined: "✗ Abgelehnt",
   expired: "⌛ Abgelaufen – nicht angenommen",
   completed: "✓ Geschafft",
   failed: "✗ Nicht geschafft",
