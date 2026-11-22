@@ -7,10 +7,12 @@ import { FriendshipActions } from "@/components/friendship-actions";
 import { ThemedText } from "@/components/themed-text";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { t, useI18n } from "@/i18n";
 
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,11 +26,7 @@ export default function ProfileScreen() {
       })
       .catch((e) => {
         if (!cancelled)
-          setError(
-            e instanceof Error
-              ? e.message
-              : "Profil konnte nicht geladen werden",
-          );
+          setError(e instanceof Error ? e.message : t("profile.loadFailed"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -46,7 +44,9 @@ export default function ProfileScreen() {
       {/* Header title follows the loaded name */}
       <Stack.Screen
         options={{
-          title: profile?.username ? `@${profile.username}` : "Profil",
+          title: profile?.username
+            ? `@${profile.username}`
+            : t("screens.profile"),
         }}
       />
 
@@ -61,7 +61,7 @@ export default function ProfileScreen() {
           <ThemedText style={styles.error}>{error}</ThemedText>
         ) : !profile ? (
           <ThemedText themeColor="textSecondary">
-            Nutzer nicht gefunden
+            {t("profile.notFound")}
           </ThemedText>
         ) : (
           <View style={styles.header}>

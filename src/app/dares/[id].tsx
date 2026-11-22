@@ -25,11 +25,12 @@ import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { getLocale, t, useI18n } from "@/i18n";
 
 type PickedPhoto = { uri: string; mimeType?: string | null };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("de-DE", {
+  return new Date(iso).toLocaleDateString(getLocale(), {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -40,6 +41,7 @@ export default function DareDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dareId = Number(id);
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
   const { session } = useAuth();
   const myId = session?.user.id;
 
@@ -58,9 +60,7 @@ export default function DareDetailScreen() {
       );
       setError(null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Dare konnte nicht geladen werden",
-      );
+      setError(e instanceof Error ? e.message : t("detail.loadFailed"));
     }
   }, [dareId]);
 
@@ -81,7 +81,7 @@ export default function DareDetailScreen() {
       await action();
       setPicked(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
+      setError(e instanceof Error ? e.message : t("common.somethingWentWrong"));
     } finally {
       await load();
       setBusy(false);
@@ -91,7 +91,7 @@ export default function DareDetailScreen() {
   async function takePhoto() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted && Platform.OS !== "web") {
-      setError("Ohne Kamerazugriff kannst du kein Foto aufnehmen.");
+      setError(t("detail.noCamera"));
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -110,11 +110,11 @@ export default function DareDetailScreen() {
   }
 
   function reject() {
-    const title = "Beweis ablehnen?";
+    const title = t("detail.rejectConfirm");
     const message =
       dare && new Date(dare.deadline) > new Date()
-        ? "Der Dare ist dann wieder offen und kann erneut eingereicht werden."
-        : "Die Frist ist vorbei – der Dare gilt dann als nicht geschafft.";
+        ? t("detail.rejectReopens")
+        : t("detail.rejectFails");
     const doReject = () => run(() => reviewDareProof(dareId, false));
 
     if (Platform.OS === "web") {
@@ -122,8 +122,12 @@ export default function DareDetailScreen() {
       return;
     }
     Alert.alert(title, message, [
-      { text: "Abbrechen", style: "cancel" },
-      { text: "Ablehnen", style: "destructive", onPress: doReject },
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.decline"),
+        style: "destructive",
+        onPress: doReject,
+      },
     ]);
   }
 
@@ -137,7 +141,7 @@ export default function DareDetailScreen() {
   if (dare === null) {
     return (
       <ThemedText themeColor="textSecondary" style={styles.padded}>
-        Dare nicht gefunden.
+        {t("detail.notFound")}
       </ThemedText>
     );
   }
@@ -163,8 +167,8 @@ export default function DareDetailScreen() {
           {!isOwnDare && (
             <ThemedText type="small" themeColor="textSecondary">
               {isCreator
-                ? `An ${personName(dare.assignee)}`
-                : `Von ${personName(dare.creator)}`}
+                ? t("common.to", { name: personName(dare.assignee) })
+                : t("common.from", { name: personName(dare.creator) })}
             </ThemedText>
           )}
           <ThemedText type="subtitle">{dare.title}</ThemedText>
@@ -178,7 +182,7 @@ export default function DareDetailScreen() {
               isOverdue && dare.status === "open" ? styles.overdue : undefined
             }
           >
-            Fällig bis {formatDate(dare.deadline)}
+            {t("common.dueUntil", { date: formatDate(dare.deadline) })}
           </ThemedText>
         </View>
 
@@ -200,7 +204,7 @@ export default function DareDetailScreen() {
             source={{ uri: proofUrl }}
             style={styles.photo}
             contentFit="cover"
-            accessibilityLabel="Beweisfoto"
+            accessibilityLabel={t("detail.proofPhoto")}
           />
         )}
 
@@ -213,20 +217,18 @@ export default function DareDetailScreen() {
                   source={{ uri: picked.uri }}
                   style={styles.photo}
                   contentFit="cover"
-                  accessibilityLabel="Ausgewähltes Beweisfoto"
+                  accessibilityLabel={t("detail.selectedPhoto")}
                 />
                 <View style={styles.buttons}>
                   <ActionButton
-                    label="Anderes Foto"
+                    label={t("detail.otherPhoto")}
                     variant="secondary"
                     disabled={busy}
                     onPress={() => setPicked(null)}
                   />
                   <ActionButton
                     label={
-                      isOwnDare
-                        ? "Als geschafft markieren"
-                        : "Beweis einreichen"
+                      isOwnDare ? t("detail.markDone") : t("detail.submitProof")
                     }
                     busy={busy}
                     onPress={() => run(() => submitDareProof(dareId, picked))}
@@ -237,13 +239,18 @@ export default function DareDetailScreen() {
               <>
                 <ThemedText type="small" themeColor="textSecondary">
                   {isOwnDare
-                    ? "Lade ein Foto hoch, um den Dare abzuschließen."
-                    : `Lade ein Beweisfoto hoch. ${personName(dare.creator)} entscheidet dann, ob es zählt.`}
+                    ? t("detail.uploadOwn")
+                    : t("detail.uploadFriend", {
+                        name: personName(dare.creator),
+                      })}
                 </ThemedText>
                 <View style={styles.buttons}>
-                  <ActionButton label="Foto aufnehmen" onPress={takePhoto} />
                   <ActionButton
-                    label="Aus Fotos wählen"
+                    label={t("detail.takePhoto")}
+                    onPress={takePhoto}
+                  />
+                  <ActionButton
+                    label={t("detail.choosePhoto")}
                     variant="secondary"
                     onPress={choosePhoto}
                   />
@@ -257,13 +264,13 @@ export default function DareDetailScreen() {
         {canReview && (
           <View style={styles.buttons}>
             <ActionButton
-              label="Ablehnen"
+              label={t("common.decline")}
               variant="danger"
               disabled={busy}
               onPress={reject}
             />
             <ActionButton
-              label="Geschafft ✓"
+              label={t("detail.approve")}
               busy={busy}
               onPress={() => run(() => reviewDareProof(dareId, true))}
             />
@@ -287,32 +294,33 @@ function statusText(
   switch (dare.status) {
     case "pending":
       return me.isAssignee
-        ? "Du hast diesen Dare noch nicht angenommen – das geht im Dares-Tab."
-        : `Wartet darauf, dass ${assignee} den Dare annimmt.`;
+        ? t("detail.status.pendingMe")
+        : t("detail.status.pendingOther", { name: assignee });
     case "open":
-      if (me.isOverdue)
-        return "Die Frist ist abgelaufen – der Dare wird gleich als nicht geschafft markiert.";
+      if (me.isOverdue) return t("detail.status.overdue");
       return me.isAssignee
-        ? "Läuft – du bist dran!"
-        : `${assignee} arbeitet daran.`;
+        ? t("detail.status.openMe")
+        : t("detail.status.openOther", { name: assignee });
     case "submitted":
       return me.isCreator
-        ? `${assignee} hat einen Beweis eingereicht. Zählt das?`
-        : `Beweis eingereicht – wartet auf die Bestätigung von ${creator}.`;
+        ? t("detail.status.submittedCreator", { name: assignee })
+        : t("detail.status.submittedAssignee", { name: creator });
     case "completed":
       return dare.completed_at
-        ? `✓ Geschafft am ${formatDate(dare.completed_at)}`
-        : "✓ Geschafft";
+        ? t("detail.status.completedOn", {
+            date: formatDate(dare.completed_at),
+          })
+        : t("detail.status.completed");
     case "failed":
-      return "✗ Nicht geschafft";
+      return t("detail.status.failed");
     case "declined":
       return me.isCreator
-        ? `${assignee} hat den Dare abgelehnt.`
-        : "Du hast den Dare abgelehnt.";
+        ? t("detail.status.declinedCreator", { name: assignee })
+        : t("detail.status.declinedMe");
     case "expired":
       return me.isCreator
-        ? `${assignee} hat den Dare nicht rechtzeitig angenommen.`
-        : "Du hast den Dare nicht vor der Frist angenommen.";
+        ? t("detail.status.expiredCreator", { name: assignee })
+        : t("detail.status.expiredMe");
   }
 }
 

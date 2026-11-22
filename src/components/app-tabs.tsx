@@ -3,11 +3,13 @@ import { NativeTabs } from "expo-router/native-tabs";
 import { useColorScheme } from "react-native";
 
 import { Colors } from "@/constants/theme";
+import { useI18n } from "@/i18n";
 
 export default function AppTabs() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === "dark" ? "dark" : "light"];
   const { waitingForMe } = useDares();
+  const { t } = useI18n();
 
   return (
     <NativeTabs
@@ -16,7 +18,7 @@ export default function AppTabs() {
       labelStyle={{ selected: { color: colors.text } }}
     >
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.home")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require("@/assets/images/tabIcons/home.png")}
           renderingMode="template"
@@ -24,7 +26,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="dare">
-        <NativeTabs.Trigger.Label>Dares</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.dares")}</NativeTabs.Trigger.Label>
         {/* Invitations + proofs to review: things waiting for me */}
         {waitingForMe > 0 && (
           <NativeTabs.Trigger.Badge>
@@ -38,7 +40,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="create">
-        <NativeTabs.Trigger.Label>Neu</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.create")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "plus.message", selected: "plus.message.fill" }}
           md="local_fire_department"
@@ -46,7 +48,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="friends">
-        <NativeTabs.Trigger.Label>Freunde</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.friends")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "figure.2", selected: "figure.2" }}
           md="local_fire_department"

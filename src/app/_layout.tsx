@@ -4,12 +4,18 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "react-native";
 
+import { SettingsProvider } from "@/components/settings-drawer";
+import { useI18n } from "@/i18n";
+
 export default function RootLayout() {
   return (
     <AuthProvider>
       {/* Live "my dares" for every screen (tabs, badge, detail) */}
       <DaresProvider>
-        <RootNavigator />
+        {/* Settings sidebar, reachable from every tab */}
+        <SettingsProvider>
+          <RootNavigator />
+        </SettingsProvider>
       </DaresProvider>
     </AuthProvider>
   );
@@ -18,6 +24,8 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session, isLoading } = useAuth();
   const colorScheme = useColorScheme();
+  // Re-renders the stack when the language changes, so titles update
+  const { t } = useI18n();
 
   // Wait until we know whether a saved login exists
   if (isLoading) return null;
@@ -30,11 +38,17 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="profile/[id]"
-            options={{ title: "Profile", headerBackTitle: "Back" }}
+            options={{
+              title: t("screens.profile"),
+              headerBackTitle: t("screens.back"),
+            }}
           />
           <Stack.Screen
             name="dares/[id]"
-            options={{ title: "Dare", headerBackTitle: "Zurück" }}
+            options={{
+              title: t("screens.dare"),
+              headerBackTitle: t("screens.back"),
+            }}
           />
         </Stack.Protected>
 

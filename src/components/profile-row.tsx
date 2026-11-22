@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
 /** A user row: tapping the name opens their profile; `right` holds actions. */
 export function ProfileRow({
@@ -16,6 +17,7 @@ export function ProfileRow({
   right?: ReactNode;
 }) {
   const theme = useTheme();
+  const { t } = useI18n();
 
   return (
     <View style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
@@ -25,7 +27,7 @@ export function ProfileRow({
       >
         <Pressable
           accessibilityRole="link"
-          accessibilityHint="Öffnet dieses Profil"
+          accessibilityHint={t("profile.openHint")}
           style={({ pressed }) => [styles.names, pressed && styles.pressed]}
         >
           <ThemedText style={styles.displayName} numberOfLines={1}>

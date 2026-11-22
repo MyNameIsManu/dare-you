@@ -3,11 +3,12 @@ import Svg, { Circle } from "react-native-svg";
 
 import {
   UrgencyColors,
-  formatRemaining,
+  remainingParts,
   type DareProgress,
 } from "@/../utils/dare-progress";
 import { ThemedText } from "@/components/themed-text";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
 type Props = {
   progress: DareProgress;
@@ -22,10 +23,16 @@ export function DeadlineRing({
   strokeWidth = 14,
 }: Props) {
   const theme = useTheme();
+  const { t } = useI18n();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const color = UrgencyColors[progress.urgency];
-  const [amount, unit] = splitRemaining(progress.remainingMs);
+  // Big number in the middle, unit below: "3" + "Tage übrig"
+  const parts = remainingParts(progress.remainingMs);
+  const amount = parts ? String(parts.count) : "0";
+  const unit = parts
+    ? `${parts.unit} ${t("progress.left")}`
+    : t("progress.expired");
 
   return (
     <View
@@ -68,14 +75,6 @@ export function DeadlineRing({
       </View>
     </View>
   );
-}
-
-/** "3 Tage" → ["3", "Tage übrig"], "abgelaufen" → ["0", "abgelaufen"] */
-function splitRemaining(ms: number): [string, string] {
-  const text = formatRemaining(ms);
-  const [amount, ...rest] = text.split(" ");
-  if (rest.length === 0) return ["0", text];
-  return [amount, `${rest.join(" ")} übrig`];
 }
 
 const styles = StyleSheet.create({

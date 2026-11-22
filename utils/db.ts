@@ -1,3 +1,4 @@
+import { t } from "../src/i18n";
 import { supabase } from "./supabase";
 
 /**
@@ -11,13 +12,13 @@ export function toError(error: {
   code?: string;
 }) {
   console.error("Supabase error:", error);
-  return new Error(error.message || error.code || "Unknown database error");
+  return new Error(error.message || error.code || t("common.databaseError"));
 }
 
 /** The signed-in user's id, or an error if nobody is signed in. */
 export async function getMyId() {
   const { data } = await supabase.auth.getSession();
   const id = data.session?.user.id;
-  if (!id) throw new Error("Not signed in");
+  if (!id) throw new Error(t("common.notSignedIn"));
   return id;
 }

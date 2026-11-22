@@ -10,6 +10,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { TimeProgressBar } from "@/components/time-progress-bar";
 import { Spacing } from "@/constants/theme";
+import { useI18n } from "@/i18n";
 
 type Props = {
   dare: Dare;
@@ -19,6 +20,7 @@ type Props = {
 
 /** One dare with a bar: how much of its time is used up. */
 export function DareProgressRow({ dare, now, onPress }: Props) {
+  const { t } = useI18n();
   const inReview = dare.status === "submitted";
   const progress = dareProgress(dare, now);
   const color = UrgencyColors[progress.urgency];
@@ -36,7 +38,7 @@ export function DareProgressRow({ dare, now, onPress }: Props) {
           {inReview ? (
             <ThemedView type="backgroundSelected" style={styles.badge}>
               <ThemedText type="small" themeColor="textSecondary">
-                In Prüfung
+                {t("home.inReview")}
               </ThemedText>
             </ThemedView>
           ) : (

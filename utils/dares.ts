@@ -1,3 +1,4 @@
+import { t } from "../src/i18n";
 import { getMyId, toError } from "./db";
 import { supabase } from "./supabase";
 
@@ -41,7 +42,10 @@ export type DarePerson = {
 
 /** "Max" or "@max" — for showing who a dare is from or for. */
 export function personName(p: DarePerson | null) {
-  return p?.display_name ?? (p?.username ? `@${p.username}` : "Unbekannt");
+  return (
+    p?.display_name ??
+    (p?.username ? `@${p.username}` : t("common.unknownPerson"))
+  );
 }
 
 const DARE_FIELDS = `id, title, description, deadline, status, created_at,
@@ -112,7 +116,7 @@ export async function createDare(dare: NewDare): Promise<number> {
 
   // Same limits as the database, so the user gets a clear message
   if (title.length < 1 || title.length > 120) {
-    throw new Error("The title must be between 1 and 120 characters.");
+    throw new Error(t("dares.titleLength"));
   }
 
   const { data, error } = await supabase
@@ -160,7 +164,7 @@ export async function withdrawDare(dareId: number) {
 
   if (error) throw toError(error);
   if (data.length === 0) {
-    throw new Error("Dein Freund hat bereits geantwortet.");
+    throw new Error(t("dares.alreadyAnswered"));
   }
 }
 

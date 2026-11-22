@@ -11,6 +11,7 @@ import {
 import { AppState } from "react-native";
 
 import { useAuth } from "./auth-context";
+import { t } from "../src/i18n";
 import { getMyDares, type MyDares } from "./dares";
 import { supabase } from "./supabase";
 
@@ -50,9 +51,7 @@ export function DaresProvider({ children }: PropsWithChildren) {
       setDares(await getMyDares());
       setError(null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Dares konnten nicht geladen werden",
-      );
+      setError(e instanceof Error ? e.message : t("dares.loadFailed"));
     }
   }, []);
 

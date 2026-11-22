@@ -19,25 +19,17 @@ import { TimeProgressBar } from "@/components/time-progress-bar";
 import { Spacing } from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
+import { getLocale, t, useI18n } from "@/i18n";
 
 const HIGHLIGHT_COLOR = "#FF9F0A";
 
 function formatDeadline(iso: string) {
-  return new Date(iso).toLocaleDateString("de-DE", {
+  return new Date(iso).toLocaleDateString(getLocale(), {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
 }
-
-const STATUS_LABEL = {
-  pending: "Wartet auf Antwort",
-  submitted: "Beweis eingereicht – wartet auf Bestätigung",
-  declined: "✗ Abgelehnt",
-  expired: "⌛ Abgelaufen – nicht angenommen",
-  completed: "✓ Geschafft",
-  failed: "✗ Nicht geschafft",
-} as const;
 
 /** One dare in a list. `highlight` makes it glow briefly (e.g. right after creating it). */
 export function DareCard({
@@ -57,6 +49,7 @@ export function DareCard({
   onPress?: () => void;
 }) {
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
   const now = useNow();
   const glow = useSharedValue(0);
 
@@ -95,7 +88,7 @@ export function DareCard({
         onPress={onPress}
         disabled={!onPress}
         accessibilityRole={onPress ? "button" : undefined}
-        accessibilityHint={onPress ? "Öffnet den Dare" : undefined}
+        accessibilityHint={onPress ? t("dares.openHint") : undefined}
         style={({ pressed }) => [styles.content, pressed && styles.pressed]}
       >
         {subtitle && (
@@ -114,7 +107,9 @@ export function DareCard({
             <TimeProgressBar progress={progress} />
             <View style={styles.progressText}>
               <ThemedText type="small" themeColor="textSecondary">
-                Fällig bis {formatDeadline(dare.deadline)}
+                {t("common.dueUntil", {
+                  date: formatDeadline(dare.deadline),
+                })}
               </ThemedText>
               <ThemedText
                 type="smallBold"
@@ -132,8 +127,10 @@ export function DareCard({
           >
             {/* Running and invited dares show their deadline, others their result */}
             {dare.status === "open" || dare.status === "pending"
-              ? `${isOverdue ? "Überfällig seit" : "Fällig bis"} ${formatDeadline(dare.deadline)}`
-              : STATUS_LABEL[dare.status]}
+              ? t(isOverdue ? "common.overdueSince" : "common.dueUntil", {
+                  date: formatDeadline(dare.deadline),
+                })
+              : t(`dares.status.${dare.status}`)}
           </ThemedText>
         )}
         {actions && <View style={styles.actions}>{actions}</View>}

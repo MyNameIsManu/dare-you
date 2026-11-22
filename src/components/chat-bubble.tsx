@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { getLocale } from "@/i18n";
 
 /** Colors of an outgoing ("sent") chat message, for light and dark mode. */
 export const BubbleColors = {
@@ -29,7 +30,7 @@ const TAIL_WIDTH = 10;
 const TAIL_HEIGHT = 14;
 
 function formatTime(date: Date) {
-  return date.toLocaleTimeString("de-DE", {
+  return date.toLocaleTimeString(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
   });

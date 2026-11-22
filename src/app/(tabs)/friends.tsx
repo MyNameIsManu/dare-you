@@ -5,6 +5,7 @@ import { FriendSearch } from "@/components/friend-search";
 import { ThemedText } from "@/components/themed-text";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
 /** Narrower than the other tabs: a search field + list reads better compact. */
 const FriendsContentWidth = Math.min(560, MaxContentWidth);
@@ -12,6 +13,7 @@ const FriendsContentWidth = Math.min(560, MaxContentWidth);
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useI18n();
 
   // Web: the tab bar floats over the top of the page, so leave room for it.
   // Native: respect the notch on top and the tab bar at the bottom.
@@ -36,7 +38,7 @@ export default function FriendsScreen() {
     >
       <View style={styles.container}>
         <ThemedText type="subtitle" style={styles.title}>
-          Freunde
+          {t("friends.title")}
         </ThemedText>
         <FriendSearch />
       </View>

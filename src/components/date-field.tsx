@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
+import { getLocale, useI18n } from "@/i18n";
 
 export type DateFieldProps = {
   value: Date;
@@ -15,7 +16,7 @@ export type DateFieldProps = {
 };
 
 export function formatDate(date: Date) {
-  return date.toLocaleDateString("de-DE", {
+  return date.toLocaleDateString(getLocale(), {
     weekday: "short",
     day: "numeric",
     month: "long",
@@ -34,6 +35,7 @@ export function DateField({
   accessibilityLabel,
 }: DateFieldProps) {
   const theme = useTheme();
+  const { t, locale } = useI18n();
   const scheme = useColorScheme();
   const [open, setOpen] = useState(false);
 
@@ -44,7 +46,7 @@ export function DateField({
         mode="date"
         display="compact"
         minimumDate={minimumDate}
-        locale="de_DE"
+        locale={locale.replace("-", "_")}
         themeVariant={scheme === "dark" ? "dark" : "light"}
         accentColor={theme.text}
         onValueChange={(_, date) => onChange(date)}
@@ -57,7 +59,7 @@ export function DateField({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        accessibilityHint="Öffnet die Datumsauswahl"
+        accessibilityHint={t("create.datePickerHint")}
         onPress={() => setOpen(true)}
         style={({ pressed }) => [
           styles.button,

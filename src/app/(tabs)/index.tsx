@@ -23,6 +23,7 @@ import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
 function openDare(dare: Dare) {
   router.push({ pathname: "/dares/[id]", params: { id: String(dare.id) } });
@@ -32,6 +33,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const now = useNow();
+  const { t } = useI18n();
   const { session } = useAuth();
   const myId = session?.user.id;
   const { dares, error, reload } = useDares();
@@ -82,11 +84,11 @@ export default function HomeScreen() {
             <ThemedView type="backgroundElement" style={styles.notice}>
               <ThemedText type="smallBold">
                 {invitations === 1
-                  ? "1 neue Herausforderung wartet auf dich"
-                  : `${invitations} neue Herausforderungen warten auf dich`}
+                  ? t("home.invitationsOne")
+                  : t("home.invitationsOther", { count: invitations })}
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                Ansehen ›
+                {t("home.view")}
               </ThemedText>
             </ThemedView>
           </Pressable>
@@ -97,17 +99,17 @@ export default function HomeScreen() {
         ) : mine.length === 0 ? (
           <View style={styles.empty}>
             <ThemedText type="subtitle" style={styles.center}>
-              Alles erledigt
+              {t("home.allDone")}
             </ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.center}>
-              Du hast gerade keine offenen Dares.
+              {t("home.noOpenDares")}
             </ThemedText>
             <Pressable
               onPress={() => router.push("/create")}
               style={({ pressed }) => pressed && styles.pressed}
             >
               <ThemedView type="backgroundSelected" style={styles.button}>
-                <ThemedText type="smallBold">Neuen Dare erstellen</ThemedText>
+                <ThemedText type="smallBold">{t("home.createDare")}</ThemedText>
               </ThemedView>
             </Pressable>
           </View>
@@ -123,7 +125,7 @@ export default function HomeScreen() {
                 ]}
               >
                 <ThemedText type="small" themeColor="textSecondary">
-                  Als Nächstes fällig
+                  {t("home.nextDue")}
                 </ThemedText>
                 <DeadlineRing progress={dareProgress(next, now)} />
                 <View style={styles.heroText}>
@@ -140,11 +142,16 @@ export default function HomeScreen() {
                     style={styles.center}
                   >
                     {next.creator_id === myId
-                      ? "Eigener Dare"
-                      : `von ${personName(next.creator)}`}
+                      ? t("home.ownDare")
+                      : t("home.fromPerson", {
+                          name: personName(next.creator),
+                        })}
                     {" · "}
-                    {Math.round(dareProgress(next, now).elapsed * 100)} % der
-                    Zeit vorbei
+                    {t("home.timePassed", {
+                      percent: Math.round(
+                        dareProgress(next, now).elapsed * 100,
+                      ),
+                    })}
                   </ThemedText>
                 </View>
               </Pressable>
@@ -155,13 +162,14 @@ export default function HomeScreen() {
               themeColor="textSecondary"
               style={styles.center}
             >
-              {running.length} offen
-              {inReview > 0 && ` · ${inReview} in Prüfung`}
+              {t("home.openCount", { count: running.length })}
+              {inReview > 0 &&
+                ` · ${t("home.inReviewCount", { count: inReview })}`}
             </ThemedText>
 
             <View style={styles.list}>
               <ThemedText type="smallBold" style={styles.listTitle}>
-                Deine Dares
+                {t("home.yourDares")}
               </ThemedText>
               {mine.map((dare) => (
                 <DareProgressRow
@@ -178,7 +186,7 @@ export default function HomeScreen() {
         <View style={styles.account}>
           {session?.user.email && (
             <ThemedText type="small" themeColor="textSecondary">
-              Angemeldet als {session.user.email}
+              {t("auth.signedInAs", { email: session.user.email })}
             </ThemedText>
           )}
           <SignOutButton />

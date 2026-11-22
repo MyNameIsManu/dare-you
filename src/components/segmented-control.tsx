@@ -8,6 +8,9 @@ type SegmentedControlProps<T extends string> = {
   options: readonly T[];
   value: T;
   onChange: (value: T) => void;
+  /** Text shown for an option (default: the option itself) */
+  getLabel?: (value: T) => string;
+  size?: "large" | "small";
 };
 
 /** A pill-shaped single-choice toggle: exactly one option is active at a time. */
@@ -15,7 +18,10 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  getLabel = (value) => value,
+  size = "large",
 }: SegmentedControlProps<T>) {
+  const small = size === "small";
   const theme = useTheme();
 
   return (
@@ -33,6 +39,7 @@ export function SegmentedControl<T extends string>({
             onPress={() => onChange(option)}
             style={({ pressed }) => [
               styles.segment,
+              small && styles.segmentSmall,
               selected && [
                 styles.segmentSelected,
                 { backgroundColor: theme.text },
@@ -43,10 +50,11 @@ export function SegmentedControl<T extends string>({
             <ThemedText
               style={[
                 styles.label,
+                small && styles.labelSmall,
                 { color: selected ? theme.background : theme.textSecondary },
               ]}
             >
-              {option}
+              {getLabel(option)}
             </ThemedText>
           </Pressable>
         );
@@ -67,6 +75,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     borderRadius: Spacing.four,
   },
+  segmentSmall: {
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+  },
   segmentSelected: {
     boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
   },
@@ -77,5 +89,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontWeight: 600,
+  },
+  labelSmall: {
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

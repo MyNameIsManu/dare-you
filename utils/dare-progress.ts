@@ -1,3 +1,4 @@
+import { t } from "../src/i18n";
 import type { Dare } from "./dares";
 
 const HOUR = 60 * 60 * 1000;
@@ -51,17 +52,34 @@ export function dareProgress(dare: Dare, now: number): DareProgress {
   };
 }
 
-/** "3 Tage", "5 Std.", "20 Min." — days only once more than 48 h are left. */
+/**
+ * Time left as number + unit: { count: 3, unit: "Tage" }.
+ * Days only once more than 48 h are left. null once the deadline has passed.
+ */
+export function remainingParts(ms: number) {
+  if (ms <= 0) return null;
+  if (ms >= 2 * DAY)
+    return { count: Math.floor(ms / DAY), unit: t("progress.days") };
+  if (ms >= HOUR)
+    return { count: Math.floor(ms / HOUR), unit: t("progress.hours") };
+  return {
+    count: Math.max(Math.floor(ms / 60000), 1),
+    unit: t("progress.minutes"),
+  };
+}
+
+/** "3 Tage", "5 Std.", "20 Min." or "abgelaufen". */
 export function formatRemaining(ms: number) {
-  if (ms <= 0) return "abgelaufen";
-  if (ms >= 2 * DAY) return `${Math.floor(ms / DAY)} Tage`;
-  if (ms >= HOUR) return `${Math.floor(ms / HOUR)} Std.`;
-  return `${Math.max(Math.floor(ms / 60000), 1)} Min.`;
+  const parts = remainingParts(ms);
+  return parts ? `${parts.count} ${parts.unit}` : t("progress.expired");
 }
 
 /** "Tag 12 / 30", or "noch 5 Std." once less than 48 h are left. */
 export function progressLabel(progress: DareProgress) {
   return progress.remainingMs < 2 * DAY
-    ? `noch ${formatRemaining(progress.remainingMs)}`
-    : `Tag ${progress.daysPassed} / ${progress.daysTotal}`;
+    ? t("progress.remaining", { time: formatRemaining(progress.remainingMs) })
+    : t("progress.dayOf", {
+        passed: progress.daysPassed,
+        total: progress.daysTotal,
+      });
 }

@@ -9,16 +9,19 @@ import {
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { useI18n } from "@/i18n";
 
 import { useAuth } from "@/../utils/auth-context";
 import { useDares } from "@/../utils/dares-context";
 
+import { SettingsButton } from "./settings-drawer";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
 
 /** Web tab bar (headless tabs). Keep in sync with the native tabs in app-tabs.tsx. */
 export default function AppTabs() {
   const { waitingForMe } = useDares();
+  const { t } = useI18n();
 
   return (
     <Tabs>
@@ -26,16 +29,16 @@ export default function AppTabs() {
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="index" href="/" asChild>
-            <TabButton>Home</TabButton>
+            <TabButton>{t("tabs.home")}</TabButton>
           </TabTrigger>
           <TabTrigger name="dare" href="/dare" asChild>
-            <TabButton badge={waitingForMe}>Dares</TabButton>
+            <TabButton badge={waitingForMe}>{t("tabs.dares")}</TabButton>
           </TabTrigger>
           <TabTrigger name="create" href="/create" asChild>
-            <TabButton>Neu</TabButton>
+            <TabButton>{t("tabs.create")}</TabButton>
           </TabTrigger>
           <TabTrigger name="friends" href="/friends" asChild>
-            <TabButton>Freunde</TabButton>
+            <TabButton>{t("tabs.friends")}</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -49,6 +52,7 @@ export function TabButton({
   badge = 0,
   ...props
 }: TabTriggerSlotProps & { badge?: number }) {
+  const { t } = useI18n();
   return (
     <Pressable
       {...props}
@@ -66,7 +70,10 @@ export function TabButton({
           {children}
         </ThemedText>
         {badge > 0 && (
-          <View style={styles.badge} accessibilityLabel={`${badge} neu`}>
+          <View
+            style={styles.badge}
+            accessibilityLabel={t("tabs.newCount", { count: badge })}
+          >
             <ThemedText type="smallBold" style={styles.badgeText}>
               {badge > 9 ? "9+" : badge}
             </ThemedText>
@@ -82,15 +89,18 @@ export function CustomTabList(props: TabListProps) {
   // Set at sign-up (see sign-in.tsx), so no extra profile request is needed
   const meta = session?.user.user_metadata;
   const name = meta?.display_name ?? meta?.username;
+  const { t } = useI18n();
 
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          {name ? `Howdy ${name}!` : "Howdy!"}
+          {name ? t("tabs.greeting", { name }) : t("tabs.greetingNoName")}
         </ThemedText>
 
         {props.children}
+
+        <SettingsButton />
       </ThemedView>
     </View>
   );

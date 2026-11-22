@@ -12,12 +12,13 @@ import {
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { t, useI18n } from "@/i18n";
 
 /** How many matching friends to show at once. */
 const MAX_VISIBLE = 5;
 
 function displayName(p: PublicProfile) {
-  return p.display_name ?? p.username ?? "Unbekannt";
+  return p.display_name ?? p.username ?? t("common.unknownPerson");
 }
 
 /**
@@ -32,6 +33,7 @@ export function FriendPicker({
   onChange: (friend: PublicProfile | null) => void;
 }) {
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
   const [friends, setFriends] = useState<PublicProfile[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
@@ -42,9 +44,7 @@ export function FriendPicker({
       setFriends(lists.friends.map((f) => f.profile));
       setError(null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Freunde konnten nicht geladen werden",
-      );
+      setError(e instanceof Error ? e.message : t("friendPicker.loadFailed"));
     }
   }, []);
 
@@ -60,8 +60,10 @@ export function FriendPicker({
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${displayName(value)} ausgewählt`}
-        accessibilityHint="Tippen, um einen anderen Freund zu wählen"
+        accessibilityLabel={t("friendPicker.selected", {
+          name: displayName(value),
+        })}
+        accessibilityHint={t("friendPicker.changeHint")}
         onPress={() => onChange(null)}
         style={({ pressed }) => [
           styles.chip,
@@ -100,10 +102,12 @@ export function FriendPicker({
           themeColor="textSecondary"
           style={styles.center}
         >
-          Du hast noch keine Freunde, die du herausfordern kannst.
+          {t("friendPicker.noFriends")}
         </ThemedText>
         <Link href="/friends">
-          <ThemedText type="linkPrimary">Freunde hinzufügen</ThemedText>
+          <ThemedText type="linkPrimary">
+            {t("friendPicker.addFriends")}
+          </ThemedText>
         </Link>
       </View>
     );
@@ -126,11 +130,11 @@ export function FriendPicker({
         <TextInput
           value={filter}
           onChangeText={setFilter}
-          placeholder="Freund suchen…"
+          placeholder={t("friendPicker.search")}
           placeholderTextColor={theme.textSecondary}
           autoCapitalize="none"
           autoCorrect={false}
-          accessibilityLabel="Freund suchen"
+          accessibilityLabel={t("friendPicker.searchLabel")}
           style={[
             styles.input,
             { color: theme.text, backgroundColor: theme.backgroundElement },
@@ -148,7 +152,7 @@ export function FriendPicker({
             themeColor="textSecondary"
             style={styles.row}
           >
-            Kein Freund gefunden
+            {t("friendPicker.noMatch")}
           </ThemedText>
         ) : (
           matches.map((friend, i) => (

@@ -17,17 +17,11 @@ import {
 import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
-
-type SectionKey = "incoming" | "friends" | "outgoing";
-
-const TITLES: Record<SectionKey, string> = {
-  incoming: "Freundschaftsanfragen",
-  friends: "Freunde",
-  outgoing: "Gesendete Anfragen",
-};
+import { t, useI18n } from "@/i18n";
 
 /** My friends, requests I received, and requests I sent. */
 export function FriendLists() {
+  useI18n(); // re-render when the language changes
   const [lists, setLists] = useState<Lists | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,9 +33,7 @@ export function FriendLists() {
       setLists(await getFriendLists());
       setError(null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Freunde konnten nicht geladen werden",
-      );
+      setError(e instanceof Error ? e.message : t("friends.loadFailed"));
     }
   }, []);
 
@@ -67,7 +59,7 @@ export function FriendLists() {
       await action(entry.friendshipId);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
+      setError(e instanceof Error ? e.message : t("common.somethingWentWrong"));
     } finally {
       setBusyId(null);
     }
@@ -81,10 +73,14 @@ export function FriendLists() {
     );
   }
 
-  // Hide empty request sections; always show "Freunde" so the empty hint has a home
+  // Hide empty request sections; always show "friends" so the empty hint has a home
   const sections = (["incoming", "friends", "outgoing"] as const)
     .filter((key) => key === "friends" || lists[key].length > 0)
-    .map((key) => ({ key, title: TITLES[key], data: lists[key] }));
+    .map((key) => ({
+      key,
+      title: t(`friends.sections.${key}`),
+      data: lists[key],
+    }));
 
   return (
     <SectionList
@@ -116,8 +112,7 @@ export function FriendLists() {
             themeColor="textSecondary"
             style={styles.empty}
           >
-            Noch keine Freunde. Suche oben nach einem Nutzernamen, um jemanden
-            hinzuzufügen.
+            {t("friends.empty")}
           </ThemedText>
         ) : null
       }
@@ -132,13 +127,13 @@ export function FriendLists() {
               right={
                 <>
                   <ActionButton
-                    label="Ablehnen"
+                    label={t("common.decline")}
                     variant="secondary"
                     disabled={busy || disabled}
                     onPress={() => run(item, removeFriendship)}
                   />
                   <ActionButton
-                    label="Annehmen"
+                    label={t("common.accept")}
                     busy={busy}
                     disabled={disabled}
                     onPress={() => run(item, acceptFriendRequest)}
@@ -155,7 +150,7 @@ export function FriendLists() {
               profile={item.profile}
               right={
                 <ActionButton
-                  label="Zurückziehen"
+                  label={t("common.withdraw")}
                   variant="secondary"
                   busy={busy}
                   disabled={disabled}

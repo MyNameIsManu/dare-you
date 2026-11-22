@@ -25,8 +25,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
-const TARGETS = ["mich", "dich"] as const;
+const TARGETS = ["me", "you"] as const;
 type Target = (typeof TARGETS)[number];
 
 const ANIMATION_MS = 250;
@@ -60,8 +61,9 @@ export default function CreateScreen() {
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+  const { t } = useI18n();
   const bubble = useBubbleColors();
-  const [target, setTarget] = useState<Target>("dich");
+  const [target, setTarget] = useState<Target>("you");
   const [friend, setFriend] = useState<PublicProfile | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -70,7 +72,7 @@ export default function CreateScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isForMe = target === "mich";
+  const isForMe = target === "me";
   const hasAssignee = isForMe || friend !== null;
   const isValid =
     hasAssignee &&
@@ -78,10 +80,10 @@ export default function CreateScreen() {
     countLetters(description) >= MIN_DESCRIPTION_LETTERS;
   const canSubmit = isValid && !saving;
   const submitHint = !hasAssignee
-    ? "Wähle einen Freund aus."
+    ? t("create.pickFriend")
     : !title.trim()
-      ? "Gib dem Dare einen Titel."
-      : `Beschreibe den Task mit mindestens ${MIN_DESCRIPTION_LETTERS} Buchstaben.`;
+      ? t("create.needTitle")
+      : t("create.needDescription", { count: MIN_DESCRIPTION_LETTERS });
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -103,7 +105,7 @@ export default function CreateScreen() {
       // Switch to the Dares tab and let it highlight the new dare
       router.navigate({ pathname: "/dare", params: { highlight: String(id) } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Speichern fehlgeschlagen");
+      setError(e instanceof Error ? e.message : t("create.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -133,14 +135,15 @@ export default function CreateScreen() {
       >
         <ThemedView style={styles.container}>
           <ThemedView style={styles.titleContainer}>
-            <ThemedText type="subtitle">Ich fordere</ThemedText>
+            <ThemedText type="subtitle">{t("create.iDare")}</ThemedText>
             <SegmentedControl
               options={TARGETS}
               value={target}
               onChange={setTarget}
+              getLabel={(option) => t(`create.${option}`)}
             />
 
-            {target === "dich" && (
+            {target === "you" && (
               <Animated.View
                 entering={FadeIn.duration(ANIMATION_MS)}
                 exiting={FadeOut.duration(ANIMATION_MS / 2)}
@@ -154,22 +157,22 @@ export default function CreateScreen() {
               layout={LinearTransition.duration(ANIMATION_MS)}
               style={styles.group}
             >
-              <ThemedText type="subtitle">heraus bis zum</ThemedText>
+              <ThemedText type="subtitle">{t("create.until")}</ThemedText>
               <DateField
                 value={dueDate}
                 onChange={setDueDate}
                 minimumDate={today}
-                accessibilityLabel="Fälligkeitsdatum"
+                accessibilityLabel={t("create.dueDate")}
               />
               <TextInput
                 value={title}
                 onChangeText={setTitle}
-                placeholder="Titel des Dares"
+                placeholder={t("create.titlePlaceholder")}
                 placeholderTextColor={theme.textSecondary}
                 maxLength={120}
                 autoCapitalize="sentences"
                 returnKeyType="done"
-                accessibilityLabel="Titel des Dares"
+                accessibilityLabel={t("create.titlePlaceholder")}
                 style={[
                   styles.friendInput,
                   styles.stretch,
@@ -183,14 +186,14 @@ export default function CreateScreen() {
                 <TextInput
                   value={description}
                   onChangeText={setDescription}
-                  placeholder="Beschreibe den Task…"
+                  placeholder={t("create.descriptionPlaceholder")}
                   placeholderTextColor={bubble.meta}
                   multiline
                   textAlignVertical="top"
                   autoCapitalize="sentences"
                   returnKeyType="done"
                   submitBehavior="blurAndSubmit"
-                  accessibilityLabel="Beschreibung des Tasks"
+                  accessibilityLabel={t("create.descriptionLabel")}
                   style={[styles.descriptionInput, { color: bubble.text }]}
                 />
               </ChatBubble>
@@ -219,7 +222,7 @@ export default function CreateScreen() {
                     },
                   ]}
                 >
-                  {saving ? "Speichern…" : "Los!"}
+                  {saving ? t("create.saving") : t("create.submit")}
                 </ThemedText>
               </Pressable>
 

@@ -12,11 +12,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useI18n } from "@/i18n";
+
 type Mode = "signIn" | "signUp";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
 
 export default function SignInScreen() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signIn");
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -33,7 +36,7 @@ export default function SignInScreen() {
     setInfo(null);
 
     if (!email.trim() || !password) {
-      setError("Bitte gib deine E-Mail und dein Passwort ein.");
+      setError(t("auth.missingCredentials"));
       return;
     }
 
@@ -43,12 +46,12 @@ export default function SignInScreen() {
       const cleanUsername = username.trim().toLowerCase();
 
       if (!displayName.trim()) {
-        setError("Bitte gib einen Anzeigenamen ein.");
+        setError(t("auth.missingDisplayName"));
         setLoading(false);
         return;
       }
       if (!USERNAME_PATTERN.test(cleanUsername)) {
-        setError("Nutzername: 3–30 Zeichen, nur a–z, 0–9 und _.");
+        setError(t("auth.invalidUsername"));
         setLoading(false);
         return;
       }
@@ -63,7 +66,7 @@ export default function SignInScreen() {
         return;
       }
       if (!available) {
-        setError("Dieser Nutzername ist schon vergeben.");
+        setError(t("auth.usernameTaken"));
         setLoading(false);
         return;
       }
@@ -77,10 +80,7 @@ export default function SignInScreen() {
         },
       });
       if (error) setError(error.message);
-      else if (!data.session)
-        setInfo(
-          "Bestätige deine E-Mail über den Link in deinem Postfach und melde dich dann an.",
-        );
+      else if (!data.session) setInfo(t("auth.confirmEmail"));
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -107,7 +107,7 @@ export default function SignInScreen() {
       >
         <Text style={styles.title}>DareYou</Text>
         <Text style={styles.subtitle}>
-          {isSignUp ? "Konto erstellen" : "Willkommen zurück"}
+          {isSignUp ? t("auth.createAccount") : t("auth.welcomeBack")}
         </Text>
 
         <View style={styles.form}>
@@ -115,7 +115,7 @@ export default function SignInScreen() {
             <>
               <TextInput
                 style={styles.input}
-                placeholder="Anzeigename"
+                placeholder={t("auth.displayName")}
                 value={displayName}
                 onChangeText={setDisplayName}
                 autoComplete="name"
@@ -123,7 +123,7 @@ export default function SignInScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Nutzername (so finden dich Freunde)"
+                placeholder={t("auth.username")}
                 value={username}
                 onChangeText={(text) => setUsername(text.toLowerCase())}
                 autoCapitalize="none"
@@ -136,7 +136,7 @@ export default function SignInScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="E-Mail"
+            placeholder={t("auth.email")}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -148,7 +148,7 @@ export default function SignInScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Passwort"
+            placeholder={t("auth.password")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -171,16 +171,14 @@ export default function SignInScreen() {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.buttonText}>
-                {isSignUp ? "Registrieren" : "Anmelden"}
+                {isSignUp ? t("auth.signUp") : t("auth.signIn")}
               </Text>
             )}
           </Pressable>
 
           <Pressable onPress={switchMode} disabled={loading}>
             <Text style={styles.switchText}>
-              {isSignUp
-                ? "Schon ein Konto? Anmelden"
-                : "Neu hier? Konto erstellen"}
+              {isSignUp ? t("auth.switchToSignIn") : t("auth.switchToSignUp")}
             </Text>
           </Pressable>
         </View>

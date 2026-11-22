@@ -19,19 +19,11 @@ import {
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
-
-const STATUS_LABEL: Record<
-  Exclude<FriendshipStatus["kind"], "self">,
-  string
-> = {
-  none: "Noch nicht befreundet",
-  outgoing: "Freundschaftsanfrage gesendet",
-  incoming: "Möchte mit dir befreundet sein",
-  friends: "✓ Befreundet",
-};
+import { t, useI18n } from "@/i18n";
 
 /** Friendship status with the matching buttons, for a profile screen. */
 export function FriendshipActions({ profile }: { profile: PublicProfile }) {
+  useI18n(); // re-render when the language changes
   const [status, setStatus] = useState<FriendshipStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +33,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
       setStatus(await getFriendshipWith(profile.id));
       setError(null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Status konnte nicht geladen werden",
-      );
+      setError(e instanceof Error ? e.message : t("profile.statusLoadFailed"));
     }
   }, [profile.id]);
 
@@ -60,7 +50,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
       await action();
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Etwas ist schiefgelaufen");
+      setError(e instanceof Error ? e.message : t("common.somethingWentWrong"));
     } finally {
       setBusy(false);
     }
@@ -71,13 +61,14 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
     // Alert with buttons isn't supported on web
     if (Platform.OS === "web") return remove();
 
-    const name = profile.display_name ?? profile.username;
+    const name =
+      profile.display_name ?? profile.username ?? t("common.unknownPerson");
     Alert.alert(
-      "Freund entfernen?",
-      `${name} ist dann nicht mehr dein Freund.`,
+      t("profile.removeConfirm"),
+      t("profile.removeMessage", { name }),
       [
-        { text: "Abbrechen", style: "cancel" },
-        { text: "Entfernen", style: "destructive", onPress: remove },
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("profile.remove"), style: "destructive", onPress: remove },
       ],
     );
   }
@@ -99,13 +90,13 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
         type="smallBold"
         themeColor={status.kind === "friends" ? "text" : "textSecondary"}
       >
-        {STATUS_LABEL[status.kind]}
+        {t(`profile.status.${status.kind}`)}
       </ThemedText>
 
       <View style={styles.buttons}>
         {status.kind === "none" && profile.username && (
           <ActionButton
-            label="Als Freund hinzufügen"
+            label={t("profile.addFriend")}
             busy={busy}
             onPress={() => run(() => sendFriendRequest(profile.username!))}
           />
@@ -113,7 +104,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
 
         {status.kind === "outgoing" && (
           <ActionButton
-            label="Anfrage zurückziehen"
+            label={t("profile.cancelRequest")}
             variant="secondary"
             busy={busy}
             onPress={() => run(() => removeFriendship(status.friendshipId))}
@@ -123,13 +114,13 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
         {status.kind === "incoming" && (
           <>
             <ActionButton
-              label="Ablehnen"
+              label={t("common.decline")}
               variant="secondary"
               disabled={busy}
               onPress={() => run(() => removeFriendship(status.friendshipId))}
             />
             <ActionButton
-              label="Annehmen"
+              label={t("common.accept")}
               busy={busy}
               onPress={() =>
                 run(() => acceptFriendRequest(status.friendshipId))
@@ -140,7 +131,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
 
         {status.kind === "friends" && (
           <ActionButton
-            label="Freund entfernen"
+            label={t("profile.removeFriend")}
             variant="danger"
             busy={busy}
             onPress={() => confirmRemove(status.friendshipId)}

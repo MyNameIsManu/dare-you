@@ -25,6 +25,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { t, useI18n } from "@/i18n";
 
 /** How long the "just created" highlight stays before the URL param is cleared. */
 const HIGHLIGHT_MS = 3000;
@@ -41,7 +42,7 @@ function confirm(
     return;
   }
   Alert.alert(title, message, [
-    { text: "Abbrechen", style: "cancel" },
+    { text: t("common.cancel"), style: "cancel" },
     { text: confirmLabel, style: "destructive", onPress: onConfirm },
   ]);
 }
@@ -53,6 +54,7 @@ export default function DareScreen() {
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
 
   // Set by the Create tab after saving: /dare?highlight=<id>
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
@@ -104,7 +106,7 @@ export default function DareScreen() {
       return true;
     } catch (e) {
       setActionError(
-        e instanceof Error ? e.message : "Etwas ist schiefgelaufen",
+        e instanceof Error ? e.message : t("common.somethingWentWrong"),
       );
       await load(); // e.g. the other person already answered
       return false;
@@ -122,18 +124,18 @@ export default function DareScreen() {
 
   function decline(dare: Dare) {
     confirm(
-      "Dare ablehnen?",
-      `${personName(dare.creator)} sieht, dass du abgelehnt hast.`,
-      "Ablehnen",
+      t("dares.declineConfirm"),
+      t("dares.declineMessage", { name: personName(dare.creator) }),
+      t("common.decline"),
       () => run(dare, () => respondToDare(dare.id, false)),
     );
   }
 
   function withdraw(dare: Dare) {
     confirm(
-      "Dare zurückziehen?",
-      `Der Dare an ${personName(dare.assignee)} wird gelöscht.`,
-      "Zurückziehen",
+      t("dares.withdrawConfirm"),
+      t("dares.withdrawMessage", { name: personName(dare.assignee) }),
+      t("common.withdraw"),
       () => run(dare, () => withdrawDare(dare.id)),
     );
   }
@@ -146,8 +148,8 @@ export default function DareScreen() {
   function otherPerson(dare: Dare) {
     if (dare.creator_id === dare.assignee_id) return undefined;
     return dare.creator_id === myId
-      ? `An ${personName(dare.assignee)}`
-      : `Von ${personName(dare.creator)}`;
+      ? t("common.to", { name: personName(dare.assignee) })
+      : t("common.from", { name: personName(dare.creator) });
   }
 
   const isBusy = (dare: Dare) => busyId === dare.id;
@@ -187,24 +189,26 @@ export default function DareScreen() {
               {dares.invitations.length > 0 && (
                 <ThemedView style={styles.section}>
                   <ThemedText type="subtitle" style={styles.center}>
-                    Herausforderungen an dich
+                    {t("dares.invitationsTitle")}
                   </ThemedText>
                   {dares.invitations.map((dare) => (
                     <DareCard
                       onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
-                      subtitle={`Von ${personName(dare.creator)}`}
+                      subtitle={t("common.from", {
+                        name: personName(dare.creator),
+                      })}
                       actions={
                         <>
                           <ActionButton
-                            label="Ablehnen"
+                            label={t("common.decline")}
                             variant="secondary"
                             disabled={isBusy(dare) || isLocked(dare)}
                             onPress={() => decline(dare)}
                           />
                           <ActionButton
-                            label="Annehmen"
+                            label={t("common.accept")}
                             busy={isBusy(dare)}
                             disabled={isLocked(dare)}
                             onPress={() => accept(dare)}
@@ -219,16 +223,20 @@ export default function DareScreen() {
               {/* Proof from a friend for a dare I created: I decide */}
               {dares.toReview.length > 0 && (
                 <ThemedView style={styles.section}>
-                  <ThemedText type="subtitle">Zu prüfen</ThemedText>
+                  <ThemedText type="subtitle">
+                    {t("dares.toReviewTitle")}
+                  </ThemedText>
                   {dares.toReview.map((dare) => (
                     <DareCard
                       key={dare.id}
                       dare={dare}
-                      subtitle={`Beweis von ${personName(dare.assignee)}`}
+                      subtitle={t("dares.proofFrom", {
+                        name: personName(dare.assignee),
+                      })}
                       onPress={() => openDare(dare)}
                       actions={
                         <ActionButton
-                          label="Ansehen"
+                          label={t("dares.view")}
                           onPress={() => openDare(dare)}
                         />
                       }
@@ -238,10 +246,10 @@ export default function DareScreen() {
               )}
 
               <ThemedView style={styles.section}>
-                <ThemedText type="subtitle">Offene Dares</ThemedText>
+                <ThemedText type="subtitle">{t("dares.openTitle")}</ThemedText>
                 {dares.open.length === 0 ? (
                   <ThemedText type="small" themeColor="textSecondary">
-                    Du hast keine offenen Dares.
+                    {t("dares.noOpen")}
                   </ThemedText>
                 ) : (
                   dares.open.map((dare) => (
@@ -261,17 +269,21 @@ export default function DareScreen() {
               {/* Dares I sent to friends that they haven't answered yet */}
               {dares.sent.length > 0 && (
                 <ThemedView style={styles.section}>
-                  <ThemedText type="subtitle">Wartet auf Antwort</ThemedText>
+                  <ThemedText type="subtitle">
+                    {t("dares.waitingTitle")}
+                  </ThemedText>
                   {dares.sent.map((dare) => (
                     <DareCard
                       onPress={() => openDare(dare)}
                       key={dare.id}
                       dare={dare}
-                      subtitle={`An ${personName(dare.assignee)}`}
+                      subtitle={t("common.to", {
+                        name: personName(dare.assignee),
+                      })}
                       highlight={dare.id === highlightId}
                       actions={
                         <ActionButton
-                          label="Zurückziehen"
+                          label={t("common.withdraw")}
                           variant="danger"
                           busy={isBusy(dare)}
                           disabled={isLocked(dare)}
@@ -284,10 +296,10 @@ export default function DareScreen() {
               )}
 
               <ThemedView style={styles.section}>
-                <ThemedText type="subtitle">Erledigte Dares</ThemedText>
+                <ThemedText type="subtitle">{t("dares.doneTitle")}</ThemedText>
                 {dares.done.length === 0 ? (
                   <ThemedText type="small" themeColor="textSecondary">
-                    Du hast noch keine abgeschlossenen Dares.
+                    {t("dares.noDone")}
                   </ThemedText>
                 ) : (
                   dares.done.map((dare) => (

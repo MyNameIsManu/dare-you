@@ -19,23 +19,22 @@ import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { t, useI18n } from "@/i18n";
 
-const STATUS_TEXT = {
-  requested: "Anfrage gesendet",
-  accepted: "Ihr seid jetzt befreundet",
-  already_requested: "Bereits angefragt",
-  already_friends: "Bereits befreundet",
-} as const;
+type SendStatus = Awaited<ReturnType<typeof sendFriendRequest>>;
+/** Result of tapping "Add": a status (translated when shown) or an error message */
+type SendResult = { status: SendStatus } | { error: string };
 
 export function FriendSearch() {
   const theme = useTheme();
+  useI18n(); // re-render when the language changes
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [results, setResults] = useState<PublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Per-user feedback after tapping "Hinzufügen", keyed by profile id
-  const [sent, setSent] = useState<Record<string, string>>({});
+  // Per-user feedback after tapping "Add", keyed by profile id
+  const [sent, setSent] = useState<Record<string, SendResult>>({});
 
   const isSearching = query.trim().length >= 2;
 
@@ -59,7 +58,7 @@ export function FriendSearch() {
         }
       } catch (e) {
         if (!cancelled)
-          setError(e instanceof Error ? e.message : "Suche fehlgeschlagen");
+          setError(e instanceof Error ? e.message : t("friends.searchFailed"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -76,14 +75,22 @@ export function FriendSearch() {
     if (!profile.username) return;
     try {
       const status = await sendFriendRequest(profile.username);
-      setSent((prev) => ({ ...prev, [profile.id]: STATUS_TEXT[status] }));
+      setSent((prev) => ({ ...prev, [profile.id]: { status } }));
     } catch (e) {
       setSent((prev) => ({
         ...prev,
-        [profile.id]:
-          e instanceof Error ? e.message : "Etwas ist schiefgelaufen",
+        [profile.id]: {
+          error:
+            e instanceof Error ? e.message : t("common.somethingWentWrong"),
+        },
       }));
     }
+  }
+
+  function sendResultText(result: SendResult) {
+    return "status" in result
+      ? t(`friends.sendStatus.${result.status}`)
+      : result.error;
   }
 
   return (
@@ -104,7 +111,7 @@ export function FriendSearch() {
         />
         <TextInput
           style={[styles.input, { color: theme.text }]}
-          placeholder="Nach Nutzername suchen"
+          placeholder={t("friends.searchPlaceholder")}
           placeholderTextColor={theme.textSecondary}
           value={query}
           onChangeText={setQuery}
@@ -132,7 +139,7 @@ export function FriendSearch() {
             ListEmptyComponent={
               !loading && !error ? (
                 <ThemedText themeColor="textSecondary" style={styles.empty}>
-                  Keine Nutzer gefunden
+                  {t("friends.noUsers")}
                 </ThemedText>
               ) : undefined
             }
@@ -141,10 +148,12 @@ export function FriendSearch() {
                 profile={item}
                 right={
                   sent[item.id] ? (
-                    <Text style={styles.status}>{sent[item.id]}</Text>
+                    <Text style={styles.status}>
+                      {sendResultText(sent[item.id])}
+                    </Text>
                   ) : (
                     <ActionButton
-                      label="Hinzufügen"
+                      label={t("friends.add")}
                       onPress={() => handleAdd(item)}
                     />
                   )

@@ -11,6 +11,7 @@ import { supabase } from "@/../utils/supabase";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useI18n } from "@/i18n";
 
 /**
  * Signs the user out of Supabase. The root layout's Stack.Protected guard
@@ -18,6 +19,7 @@ import { useTheme } from "@/hooks/use-theme";
  */
 export function SignOutButton() {
   const theme = useTheme();
+  const { t } = useI18n();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function signOut() {
@@ -26,7 +28,7 @@ export function SignOutButton() {
     // On success this component unmounts (we leave the tabs), so only reset on error.
     if (error) {
       setIsSigningOut(false);
-      Alert.alert("Abmelden fehlgeschlagen", error.message);
+      Alert.alert(t("auth.signOutFailed"), error.message);
     }
   }
 
@@ -34,9 +36,9 @@ export function SignOutButton() {
     // Alert with buttons isn't supported on web — sign out directly there.
     if (Platform.OS === "web") return signOut();
 
-    Alert.alert("Abmelden?", "Du kannst dich jederzeit wieder anmelden.", [
-      { text: "Abbrechen", style: "cancel" },
-      { text: "Abmelden", style: "destructive", onPress: signOut },
+    Alert.alert(t("auth.signOutConfirm"), t("auth.signOutHint"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("auth.signOut"), style: "destructive", onPress: signOut },
     ]);
   }
 
@@ -56,7 +58,7 @@ export function SignOutButton() {
         <ActivityIndicator color={theme.textSecondary} />
       ) : (
         <ThemedText type="smallBold" style={styles.label}>
-          Abmelden
+          {t("auth.signOut")}
         </ThemedText>
       )}
     </Pressable>
