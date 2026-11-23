@@ -48,6 +48,7 @@
       ]
     ],
     "experiments": {
+      "baseUrl": "/dare",
       "typedRoutes": true,
       "reactCompiler": true
     }

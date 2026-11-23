@@ -40,7 +40,7 @@ jobs:
           SFTP_DIR: ${{ vars.SFTP_DIR || '/' }}
         run: |
           sudo apt-get install -y lftp
-          lftp -u "$SFTP_USER" --env-password "sftp://$SFTP_HOST" -e "
+          lftp -d -u "$SFTP_USER" --env-password "sftp://$SFTP_HOST" -e "
             set sftp:auto-confirm yes;
             set sftp:connect-program 'ssh -a -x -o StrictHostKeyChecking=accept-new';
             set net:timeout 20;
