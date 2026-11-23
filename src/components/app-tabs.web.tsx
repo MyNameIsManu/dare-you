@@ -31,7 +31,7 @@ export default function AppTabs() {
           <TabTrigger name="index" href="/" asChild>
             <TabButton>{t("tabs.home")}</TabButton>
           </TabTrigger>
-          <TabTrigger name="dare" href="/dare" asChild>
+          <TabTrigger name="dares" href="/dares" asChild>
             <TabButton badge={waitingForMe}>{t("tabs.dares")}</TabButton>
           </TabTrigger>
           <TabTrigger name="create" href="/create" asChild>

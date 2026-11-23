@@ -78,7 +78,7 @@ export default function HomeScreen() {
         {/* Invitations live on the Dares tab; just point there */}
         {invitations > 0 && (
           <Pressable
-            onPress={() => router.push("/dare")}
+            onPress={() => router.push("/dares")}
             style={({ pressed }) => pressed && styles.pressed}
           >
             <ThemedView type="backgroundElement" style={styles.notice}>

@@ -56,7 +56,7 @@ export default function DareScreen() {
   const theme = useTheme();
   useI18n(); // re-render when the language changes
 
-  // Set by the Create tab after saving: /dare?highlight=<id>
+  // Set by the Create tab after saving: /dares?highlight=<id>
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
   const highlightId = highlight ? Number(highlight) : null;
 

@@ -25,7 +25,7 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="dare">
+      <NativeTabs.Trigger name="dares">
         <NativeTabs.Trigger.Label>{t("tabs.dares")}</NativeTabs.Trigger.Label>
         {/* Invitations + proofs to review: things waiting for me */}
         {waitingForMe > 0 && (

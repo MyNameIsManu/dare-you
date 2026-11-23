@@ -103,7 +103,10 @@ export default function CreateScreen() {
       setDescription("");
       setDueDate(addDays(startOfToday(), 1));
       // Switch to the Dares tab and let it highlight the new dare
-      router.navigate({ pathname: "/dare", params: { highlight: String(id) } });
+      router.navigate({
+        pathname: "/dares",
+        params: { highlight: String(id) },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : t("create.saveFailed"));
     } finally {
