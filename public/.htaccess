@@ -1,5 +1,5 @@
 # Apache config for the Expo web build (Strato webspace)
-# The app lives at manuelamosandl.com/dare — must match "baseUrl" in app.json
+# The app lives at manuelamosandl.com/dare-you — must match "baseUrl" in app.json
 
 # expo-sqlite on web needs SharedArrayBuffer, which browsers only allow with these headers
 <IfModule mod_headers.c>
@@ -9,7 +9,7 @@
 
 # Force HTTPS
 RewriteEngine On
-RewriteBase /dare/
+RewriteBase /dare-you/
 RewriteCond %{HTTPS} !=on
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 

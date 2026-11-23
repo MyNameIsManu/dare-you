@@ -48,7 +48,7 @@
       ]
     ],
     "experiments": {
-      "baseUrl": "/dare",
+      "baseUrl": "/dare-you",
       "typedRoutes": true,
       "reactCompiler": true
     }
