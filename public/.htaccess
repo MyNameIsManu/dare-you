@@ -1,0 +1,24 @@
+# Apache config for the Expo web build (Strato webspace)
+
+# expo-sqlite on web needs SharedArrayBuffer, which browsers only allow with these headers
+<IfModule mod_headers.c>
+  Header always set Cross-Origin-Embedder-Policy "credentialless"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+</IfModule>
+
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Single-page app: every path that isn't a real file goes to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+# index.html must never be cached, so new deploys show up immediately
+<Files "index.html">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache"
+  </IfModule>
+</Files>
