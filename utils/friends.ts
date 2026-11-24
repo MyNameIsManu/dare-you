@@ -42,6 +42,22 @@ export async function searchUsers(query: string): Promise<PublicProfile[]> {
   return data;
 }
 
+/** The most recently registered users (with a username), newest first. */
+export async function getNewestUsers(limit = 5): Promise<PublicProfile[]> {
+  const myId = await getMyId();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(PROFILE_FIELDS)
+    .not("username", "is", null)
+    .neq("id", myId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw toError(error);
+  return data;
+}
+
 /** Load one public profile by id. Returns null if no such user exists. */
 export async function getProfile(id: string): Promise<PublicProfile | null> {
   const { data, error } = await supabase

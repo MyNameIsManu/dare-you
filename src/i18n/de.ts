@@ -198,6 +198,7 @@ export const de = {
       incoming: "Freundschaftsanfragen",
       friends: "Freunde",
       outgoing: "Gesendete Anfragen",
+      newest: "Neu dabei",
     },
     empty:
       "Noch keine Freunde. Suche oben nach einem Nutzernamen, um jemanden hinzuzufügen.",

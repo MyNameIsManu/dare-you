@@ -190,6 +190,7 @@ export const en: Translations = {
       incoming: "Friend requests",
       friends: "Friends",
       outgoing: "Sent requests",
+      newest: "New here",
     },
     empty: "No friends yet. Search for a username above to add someone.",
   },

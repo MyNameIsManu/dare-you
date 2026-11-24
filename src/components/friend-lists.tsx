@@ -1,9 +1,12 @@
 import {
   acceptFriendRequest,
   getFriendLists,
+  getNewestUsers,
   removeFriendship,
+  sendFriendRequest,
   type FriendLists as Lists,
   type FriendshipEntry,
+  type PublicProfile,
 } from "@/../utils/friends";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -12,6 +15,7 @@ import {
   RefreshControl,
   SectionList,
   StyleSheet,
+  View,
 } from "react-native";
 
 import { ActionButton, ProfileRow } from "@/components/profile-row";
@@ -19,18 +23,28 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { t, useI18n } from "@/i18n";
 
-/** My friends, requests I received, and requests I sent. */
+const NEWEST_COUNT = 5;
+
+/** My friends, requests I received, requests I sent, and the newest users. */
 export function FriendLists() {
   useI18n(); // re-render when the language changes
   const [lists, setLists] = useState<Lists | null>(null);
+  const [newest, setNewest] = useState<PublicProfile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   // Friendship id whose button is currently working
   const [busyId, setBusyId] = useState<number | null>(null);
+  // Profile id in the "new here" list whose "Add" button is working
+  const [addingId, setAddingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      setLists(await getFriendLists());
+      const [friendLists, newestUsers] = await Promise.all([
+        getFriendLists(),
+        getNewestUsers(NEWEST_COUNT),
+      ]);
+      setLists(friendLists);
+      setNewest(newestUsers);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("friends.loadFailed"));
@@ -62,6 +76,19 @@ export function FriendLists() {
       setError(e instanceof Error ? e.message : t("common.somethingWentWrong"));
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function add(profile: PublicProfile) {
+    if (!profile.username) return;
+    setAddingId(profile.id);
+    try {
+      await sendFriendRequest(profile.username);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.somethingWentWrong"));
+    } finally {
+      setAddingId(null);
     }
   }
 
@@ -97,14 +124,29 @@ export function FriendLists() {
         ) : undefined
       }
       renderSectionHeader={({ section }) => (
-        <ThemedText
-          type="smallBold"
-          themeColor="textSecondary"
-          style={styles.header}
-        >
-          {section.title.toUpperCase()} · {section.data.length}
-        </ThemedText>
+        <SectionHeader title={section.title} count={section.data.length} />
       )}
+      ListFooterComponent={
+        newest.length > 0 ? (
+          <View>
+            <SectionHeader title={t("friends.sections.newest")} />
+            {newest.map((profile) => (
+              <ProfileRow
+                key={profile.id}
+                profile={profile}
+                right={
+                  <NewestStatus
+                    status={relationTo(lists, profile.id)}
+                    busy={addingId === profile.id}
+                    disabled={addingId !== null && addingId !== profile.id}
+                    onAdd={() => add(profile)}
+                  />
+                }
+              />
+            ))}
+          </View>
+        ) : undefined
+      }
       renderSectionFooter={({ section }) =>
         section.key === "friends" && section.data.length === 0 ? (
           <ThemedText
@@ -165,6 +207,60 @@ export function FriendLists() {
         return <ProfileRow profile={item.profile} />;
       }}
     />
+  );
+}
+
+function SectionHeader({ title, count }: { title: string; count?: number }) {
+  return (
+    <ThemedText
+      type="smallBold"
+      themeColor="textSecondary"
+      style={styles.header}
+    >
+      {title.toUpperCase()}
+      {count !== undefined && ` · ${count}`}
+    </ThemedText>
+  );
+}
+
+type Relation = "none" | "friends" | "outgoing" | "incoming";
+
+/** How I'm connected to a user, looked up in my friend lists. */
+function relationTo(lists: Lists, profileId: string): Relation {
+  const has = (entries: FriendshipEntry[]) =>
+    entries.some((entry) => entry.profile.id === profileId);
+  if (has(lists.friends)) return "friends";
+  if (has(lists.outgoing)) return "outgoing";
+  if (has(lists.incoming)) return "incoming";
+  return "none";
+}
+
+/** "Add" button for strangers, a short status for everyone else. */
+function NewestStatus({
+  status,
+  busy,
+  disabled,
+  onAdd,
+}: {
+  status: Relation;
+  busy: boolean;
+  disabled: boolean;
+  onAdd: () => void;
+}) {
+  if (status === "none") {
+    return (
+      <ActionButton
+        label={t("friends.add")}
+        busy={busy}
+        disabled={disabled}
+        onPress={onAdd}
+      />
+    );
+  }
+  return (
+    <ThemedText type="small" themeColor="textSecondary">
+      {t(`profile.status.${status}`)}
+    </ThemedText>
   );
 }
 
