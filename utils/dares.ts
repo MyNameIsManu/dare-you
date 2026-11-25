@@ -1,4 +1,4 @@
-import { t } from "../src/i18n";
+import { getLocale, t } from "../src/i18n";
 import { getMyId, toError } from "./db";
 import { supabase } from "./supabase";
 
@@ -106,6 +106,25 @@ function endOfDay(date: Date) {
 }
 
 /**
+ * When you may dare a friend again (24 h after your last friend dare),
+ * or null if you can right now. Admins are never limited.
+ */
+export async function getNextDareAllowedAt(): Promise<Date | null> {
+  const { data, error } = await supabase.rpc("next_dare_allowed_at");
+  if (error) throw toError(error);
+  return data ? new Date(data) : null;
+}
+
+/** "Do., 14:30" — short enough for a one-line notice. */
+export function formatNextDareTime(date: Date) {
+  return date.toLocaleString(getLocale(), {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
  * Create a dare and return its id.
  * Row Level Security only allows yourself or an accepted friend as assignee.
  */
@@ -131,6 +150,15 @@ export async function createDare(dare: NewDare): Promise<number> {
     .select("id")
     .single();
 
+  // Raised by the database trigger; the hint holds the next allowed time
+  if (error?.message === "daily_dare_limit") {
+    const next = error.hint ? new Date(error.hint) : null;
+    throw new Error(
+      next
+        ? t("create.dailyLimit", { time: formatNextDareTime(next) })
+        : t("create.dailyLimitNoTime"),
+    );
+  }
   if (error) throw toError(error);
   return data.id;
 }

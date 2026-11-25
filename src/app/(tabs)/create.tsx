@@ -1,7 +1,11 @@
-import { createDare } from "@/../utils/dares";
+import {
+  createDare,
+  formatNextDareTime,
+  getNextDareAllowedAt,
+} from "@/../utils/dares";
 import type { PublicProfile } from "@/../utils/friends";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -24,6 +28,7 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
 
@@ -71,19 +76,37 @@ export default function CreateScreen() {
   const [dueDate, setDueDate] = useState(() => addDays(startOfToday(), 1));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Daily limit: when daring a friend is possible again (null = now)
+  const [nextAllowedAt, setNextAllowedAt] = useState<Date | null>(null);
+  const now = useNow();
+
+  const loadLimit = useCallback(() => {
+    getNextDareAllowedAt()
+      .then(setNextAllowedAt)
+      // Not critical: the database still enforces the limit on submit
+      .catch(() => setNextAllowedAt(null));
+  }, []);
+
+  // Check again whenever the tab comes into view
+  useFocusEffect(loadLimit);
 
   const isForMe = target === "me";
+  const isLimited =
+    !isForMe && nextAllowedAt !== null && nextAllowedAt.getTime() > now;
   const hasAssignee = isForMe || friend !== null;
   const isValid =
+    !isLimited &&
     hasAssignee &&
     title.trim().length > 0 &&
     countLetters(description) >= MIN_DESCRIPTION_LETTERS;
   const canSubmit = isValid && !saving;
-  const submitHint = !hasAssignee
-    ? t("create.pickFriend")
-    : !title.trim()
-      ? t("create.needTitle")
-      : t("create.needDescription", { count: MIN_DESCRIPTION_LETTERS });
+  const submitHint = isLimited
+    ? t("create.dailyLimit", { time: formatNextDareTime(nextAllowedAt) })
+    : !hasAssignee
+      ? t("create.pickFriend")
+      : !title.trim()
+        ? t("create.needTitle")
+        : t("create.needDescription", { count: MIN_DESCRIPTION_LETTERS });
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -111,6 +134,8 @@ export default function CreateScreen() {
       setError(e instanceof Error ? e.message : t("create.saveFailed"));
     } finally {
       setSaving(false);
+      // A friend dare starts the 24 h wait; also refreshes after a refusal
+      loadLimit();
     }
   }
 

@@ -170,6 +170,9 @@ export const de = {
     saving: "Speichern…",
     submit: "Los!",
     datePickerHint: "Öffnet die Datumsauswahl",
+    dailyLimit: "Du kannst ab {time} wieder einen Freund herausfordern.",
+    dailyLimitNoTime:
+      "Du kannst nur einen Freund pro Tag herausfordern. Versuch es später noch einmal.",
   },
   friendPicker: {
     loadFailed: "Freunde konnten nicht geladen werden",

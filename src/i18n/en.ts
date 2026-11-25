@@ -162,6 +162,9 @@ export const en: Translations = {
     saving: "Saving…",
     submit: "Go!",
     datePickerHint: "Opens the date picker",
+    dailyLimit: "You can dare a friend again from {time}.",
+    dailyLimitNoTime:
+      "You can only dare one friend per day. Please try again later.",
   },
   friendPicker: {
     loadFailed: "Could not load friends",
