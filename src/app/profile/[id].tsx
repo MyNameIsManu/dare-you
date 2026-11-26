@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import { Avatar } from "@/components/avatar";
 import { FriendshipActions } from "@/components/friendship-actions";
 import { ThemedText } from "@/components/themed-text";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
@@ -65,16 +66,8 @@ export default function ProfileScreen() {
           </ThemedText>
         ) : (
           <View style={styles.header}>
-            <View
-              style={[
-                styles.avatar,
-                { backgroundColor: theme.backgroundElement },
-              ]}
-              accessible={false}
-            >
-              <ThemedText style={styles.initial}>
-                {name.charAt(0).toUpperCase()}
-              </ThemedText>
+            <View style={styles.avatar}>
+              <Avatar name={name} url={profile.avatar_url} size={96} />
             </View>
 
             <ThemedText type="subtitle" style={styles.center}>
@@ -115,17 +108,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: Spacing.two,
-  },
-  initial: {
-    fontSize: 40,
-    lineHeight: 48,
-    fontWeight: 700,
   },
   center: {
     textAlign: "center",

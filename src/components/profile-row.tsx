@@ -3,12 +3,13 @@ import { Link } from "expo-router";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
+import { Avatar } from "@/components/avatar";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
 
-/** A user row: tapping the name opens their profile; `right` holds actions. */
+/** A user row: tapping avatar or name opens their profile; `right` holds actions. */
 export function ProfileRow({
   profile,
   right,
@@ -18,6 +19,7 @@ export function ProfileRow({
 }) {
   const theme = useTheme();
   const { t } = useI18n();
+  const name = profile.display_name ?? profile.username ?? "";
 
   return (
     <View style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
@@ -28,16 +30,19 @@ export function ProfileRow({
         <Pressable
           accessibilityRole="link"
           accessibilityHint={t("profile.openHint")}
-          style={({ pressed }) => [styles.names, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.person, pressed && styles.pressed]}
         >
-          <ThemedText style={styles.displayName} numberOfLines={1}>
-            {profile.display_name ?? profile.username}
-          </ThemedText>
-          {profile.username && (
-            <ThemedText type="small" themeColor="textSecondary">
-              @{profile.username}
+          <Avatar name={name} url={profile.avatar_url} size={40} />
+          <View style={styles.names}>
+            <ThemedText style={styles.displayName} numberOfLines={1}>
+              {name}
             </ThemedText>
-          )}
+            {profile.username && (
+              <ThemedText type="small" themeColor="textSecondary">
+                @{profile.username}
+              </ThemedText>
+            )}
+          </View>
         </Pressable>
       </Link>
       {right && <View style={styles.actions}>{right}</View>}
@@ -100,6 +105,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: Spacing.two,
+  },
+  person: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.three,
   },
   names: {
     flex: 1,

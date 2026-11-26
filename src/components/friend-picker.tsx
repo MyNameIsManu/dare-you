@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { Avatar } from "@/components/avatar";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -71,6 +72,7 @@ export function FriendPicker({
           pressed && styles.pressed,
         ]}
       >
+        <Avatar name={displayName(value)} url={value.avatar_url} size={28} />
         <ThemedText style={[styles.chipName, { color: theme.background }]}>
           {displayName(value)}
         </ThemedText>
@@ -173,6 +175,11 @@ export function FriendPicker({
                 pressed && { backgroundColor: theme.backgroundSelected },
               ]}
             >
+              <Avatar
+                name={displayName(friend)}
+                url={friend.avatar_url}
+                size={32}
+              />
               <ThemedText style={styles.rowName}>
                 {displayName(friend)}
               </ThemedText>
@@ -207,7 +214,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
     gap: Spacing.two,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
@@ -217,10 +224,11 @@ const styles = StyleSheet.create({
   },
   chip: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
     gap: Spacing.two,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
+    paddingLeft: Spacing.two,
+    paddingRight: Spacing.four,
     borderRadius: Spacing.five,
   },
   chipName: {
