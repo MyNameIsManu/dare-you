@@ -1,13 +1,11 @@
 import { useDares } from "@/../utils/dares-context";
 import { NativeTabs } from "expo-router/native-tabs";
-import { useColorScheme } from "react-native";
 
 import { Colors } from "@/constants/theme";
 import { useI18n } from "@/i18n";
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === "dark" ? "dark" : "light"];
+  const colors = Colors.light;
   const { waitingForMe } = useDares();
   const { t } = useI18n();
 

@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { UrgencyColors, type DareProgress } from "@/../utils/dare-progress";
 import { useTheme } from "@/hooks/use-theme";
 
-/** Thin bar: how much of a dare's time is used up, coloured by urgency. */
+/** Thin bar: how much of a dare's time is used up, toned by urgency. */
 export function TimeProgressBar({ progress }: { progress: DareProgress }) {
   const theme = useTheme();
 
@@ -22,7 +22,7 @@ export function TimeProgressBar({ progress }: { progress: DareProgress }) {
           styles.fill,
           {
             width: `${progress.elapsed * 100}%`,
-            backgroundColor: UrgencyColors[progress.urgency],
+            backgroundColor: theme[UrgencyColors[progress.urgency]],
           },
         ]}
       />

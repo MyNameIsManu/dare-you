@@ -11,7 +11,7 @@ import {
 
 import { Avatar } from "@/components/avatar";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { t, useI18n } from "@/i18n";
 
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
   },
 });

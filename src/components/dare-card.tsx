@@ -20,8 +20,7 @@ import { Spacing } from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
 import { getLocale, t, useI18n } from "@/i18n";
-
-const HIGHLIGHT_COLOR = "#FF9F0A";
+import { glassSurface } from "@/components/glass-card";
 
 function formatDeadline(iso: string) {
   return new Date(iso).toLocaleDateString(getLocale(), {
@@ -74,15 +73,16 @@ export function DareCard({
     dare.status === "open" && !isOverdue ? dareProgress(dare, now) : null;
 
   return (
-    <Animated.View
-      style={[
-        styles.card,
-        { backgroundColor: theme.backgroundElement },
-        cardStyle,
-      ]}
-    >
-      {/* Highlight layer: an orange outline + tint that fades out */}
-      <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
+    <Animated.View style={[styles.card, glassSurface(theme), cardStyle]}>
+      {/* Highlight layer: an accent outline + tint that fades out */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.glow,
+          { borderColor: theme.accent, backgroundColor: theme.accentSoft },
+          glowStyle,
+        ]}
+      />
 
       <Pressable
         onPress={onPress}
@@ -113,7 +113,7 @@ export function DareCard({
               </ThemedText>
               <ThemedText
                 type="smallBold"
-                style={{ color: UrgencyColors[progress.urgency] }}
+                style={{ color: theme[UrgencyColors[progress.urgency]] }}
               >
                 {progressLabel(progress)}
               </ThemedText>
@@ -122,7 +122,7 @@ export function DareCard({
         ) : (
           <ThemedText
             type="smallBold"
-            style={isOverdue ? styles.overdue : undefined}
+            style={isOverdue ? { color: theme.danger } : undefined}
             themeColor={isOverdue ? undefined : "textSecondary"}
           >
             {/* Running and invited dares show their deadline, others their result */}
@@ -151,15 +151,13 @@ const styles = StyleSheet.create({
   },
   card: {
     alignSelf: "stretch",
-    borderRadius: Spacing.three,
+    borderRadius: Spacing.four,
     overflow: "hidden",
   },
   glow: {
     ...StyleSheet.absoluteFill,
-    borderRadius: Spacing.three,
+    borderRadius: Spacing.four,
     borderWidth: 2,
-    borderColor: HIGHLIGHT_COLOR,
-    backgroundColor: `${HIGHLIGHT_COLOR}26`, // ~15% tint
   },
   content: {
     padding: Spacing.three,
@@ -178,8 +176,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: Spacing.two,
-  },
-  overdue: {
-    color: "#E5484D",
   },
 });

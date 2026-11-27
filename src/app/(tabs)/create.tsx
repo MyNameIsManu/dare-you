@@ -26,11 +26,17 @@ import { DateField } from "@/components/date-field";
 import { FriendPicker } from "@/components/friend-picker";
 import { SegmentedControl } from "@/components/segmented-control";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import {
+  Colors,
+  BottomTabInset,
+  MaxContentWidth,
+  Spacing,
+} from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
+import { GlassScreen } from "@/components/glass-screen";
+import { glassSurface } from "@/components/glass-card";
 
 const TARGETS = ["me", "you"] as const;
 type Target = (typeof TARGETS)[number];
@@ -153,16 +159,16 @@ export default function CreateScreen() {
   });
 
   return (
-    <View style={styles.screen}>
+    <GlassScreen style={styles.screen}>
       <ScrollView
-        style={[styles.scrollView, { backgroundColor: theme.background }]}
+        style={styles.scrollView}
         contentInset={insets}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
       >
-        <ThemedView style={styles.container}>
-          <ThemedView style={styles.titleContainer}>
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
             <ThemedText type="subtitle">{t("create.iDare")}</ThemedText>
             <SegmentedControl
               options={TARGETS}
@@ -204,10 +210,8 @@ export default function CreateScreen() {
                 style={[
                   styles.friendInput,
                   styles.stretch,
-                  {
-                    color: theme.text,
-                    backgroundColor: theme.backgroundElement,
-                  },
+                  glassSurface(theme),
+                  { color: theme.text },
                 ]}
               />
               <ChatBubble>
@@ -236,7 +240,7 @@ export default function CreateScreen() {
                   styles.submitButton,
                   {
                     backgroundColor: canSubmit
-                      ? theme.text
+                      ? theme.accent
                       : theme.backgroundElement,
                   },
                   pressed && styles.pressed,
@@ -246,7 +250,7 @@ export default function CreateScreen() {
                   style={[
                     styles.submitLabel,
                     {
-                      color: canSubmit ? theme.background : theme.textSecondary,
+                      color: canSubmit ? theme.onAccent : theme.textSecondary,
                     },
                   ]}
                 >
@@ -262,10 +266,10 @@ export default function CreateScreen() {
               )}
               {error && <ThemedText style={styles.error}>{error}</ThemedText>}
             </Animated.View>
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
       </ScrollView>
-    </View>
+    </GlassScreen>
   );
 }
 
@@ -307,7 +311,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
   },
   group: {

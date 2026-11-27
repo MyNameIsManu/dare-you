@@ -18,7 +18,7 @@ import {
 
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { t, useI18n } from "@/i18n";
 
 /** Friendship status with the matching buttons, for a profile screen. */
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
   },
 });

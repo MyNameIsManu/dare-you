@@ -9,7 +9,7 @@ import {
 
 import { supabase } from "@/../utils/supabase";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
 
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.five,
   },
   label: {
-    color: "#E5484D",
+    color: Colors.light.danger,
   },
   pressed: {
     opacity: 0.7,

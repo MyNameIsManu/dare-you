@@ -22,10 +22,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DareCard } from "@/components/dare-card";
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
+import {
+  Colors,
+  BottomTabInset,
+  MaxContentWidth,
+  Spacing,
+} from "@/constants/theme";
 import { t, useI18n } from "@/i18n";
+import { GlassScreen } from "@/components/glass-screen";
 
 /** How long the "just created" highlight stays before the URL param is cleared. */
 const HIGHLIGHT_MS = 3000;
@@ -53,7 +57,6 @@ export default function DareScreen() {
     ...safeAreaInsets,
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
-  const theme = useTheme();
   useI18n(); // re-render when the language changes
 
   // Set by the Create tab after saving: /dares?highlight=<id>
@@ -169,16 +172,16 @@ export default function DareScreen() {
   });
 
   return (
-    <View style={styles.screen}>
+    <GlassScreen style={styles.screen}>
       <ScrollView
-        style={[styles.scrollView, { backgroundColor: theme.background }]}
+        style={styles.scrollView}
         contentInset={insets}
         contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
       >
-        <ThemedView style={styles.container}>
+        <View style={styles.container}>
           {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
           {!dares ? (
@@ -187,7 +190,7 @@ export default function DareScreen() {
             <>
               {/* Dares friends sent me: accept or decline */}
               {dares.invitations.length > 0 && (
-                <ThemedView style={styles.section}>
+                <View style={styles.section}>
                   <ThemedText type="subtitle" style={styles.center}>
                     {t("dares.invitationsTitle")}
                   </ThemedText>
@@ -217,12 +220,12 @@ export default function DareScreen() {
                       }
                     />
                   ))}
-                </ThemedView>
+                </View>
               )}
 
               {/* Proof from a friend for a dare I created: I decide */}
               {dares.toReview.length > 0 && (
-                <ThemedView style={styles.section}>
+                <View style={styles.section}>
                   <ThemedText type="subtitle">
                     {t("dares.toReviewTitle")}
                   </ThemedText>
@@ -242,10 +245,10 @@ export default function DareScreen() {
                       }
                     />
                   ))}
-                </ThemedView>
+                </View>
               )}
 
-              <ThemedView style={styles.section}>
+              <View style={styles.section}>
                 <ThemedText type="subtitle">{t("dares.openTitle")}</ThemedText>
                 {dares.open.length === 0 ? (
                   <ThemedText type="small" themeColor="textSecondary">
@@ -264,11 +267,11 @@ export default function DareScreen() {
                     />
                   ))
                 )}
-              </ThemedView>
+              </View>
 
               {/* Dares I sent to friends that they haven't answered yet */}
               {dares.sent.length > 0 && (
-                <ThemedView style={styles.section}>
+                <View style={styles.section}>
                   <ThemedText type="subtitle">
                     {t("dares.waitingTitle")}
                   </ThemedText>
@@ -292,10 +295,10 @@ export default function DareScreen() {
                       }
                     />
                   ))}
-                </ThemedView>
+                </View>
               )}
 
-              <ThemedView style={styles.section}>
+              <View style={styles.section}>
                 <ThemedText type="subtitle">{t("dares.doneTitle")}</ThemedText>
                 {dares.done.length === 0 ? (
                   <ThemedText type="small" themeColor="textSecondary">
@@ -311,12 +314,12 @@ export default function DareScreen() {
                     />
                   ))
                 )}
-              </ThemedView>
+              </View>
             </>
           )}
-        </ThemedView>
+        </View>
       </ScrollView>
-    </View>
+    </GlassScreen>
   );
 }
 
@@ -346,7 +349,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.six,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
     marginTop: Spacing.four,
   },

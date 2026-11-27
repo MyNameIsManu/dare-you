@@ -2,7 +2,6 @@ import { type ReactNode, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Spacing } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { getLocale } from "@/i18n";
 
 /** Colors of an outgoing ("sent") chat message, for light and dark mode. */
@@ -22,8 +21,7 @@ export const BubbleColors = {
 } as const;
 
 export function useBubbleColors() {
-  const scheme = useColorScheme();
-  return BubbleColors[scheme === "dark" ? "dark" : "light"];
+  return BubbleColors.light; // light mode only for now
 }
 
 const TAIL_WIDTH = 10;

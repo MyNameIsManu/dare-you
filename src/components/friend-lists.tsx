@@ -20,7 +20,7 @@ import {
 
 import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { t, useI18n } from "@/i18n";
 
 const NEWEST_COUNT = 5;
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     marginTop: Spacing.two,
   },
 });

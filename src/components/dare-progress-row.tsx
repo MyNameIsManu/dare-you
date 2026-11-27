@@ -10,7 +10,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { TimeProgressBar } from "@/components/time-progress-bar";
 import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
+import { glassSurface } from "@/components/glass-card";
 
 type Props = {
   dare: Dare;
@@ -21,16 +23,17 @@ type Props = {
 /** One dare with a bar: how much of its time is used up. */
 export function DareProgressRow({ dare, now, onPress }: Props) {
   const { t } = useI18n();
+  const theme = useTheme();
   const inReview = dare.status === "submitted";
   const progress = dareProgress(dare, now);
-  const color = UrgencyColors[progress.urgency];
+  const color = theme[UrgencyColors[progress.urgency]];
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => pressed && styles.pressed}
     >
-      <ThemedView type="backgroundElement" style={styles.card}>
+      <View style={[styles.card, glassSurface(theme)]}>
         <View style={styles.header}>
           <ThemedText type="smallBold" numberOfLines={1} style={styles.title}>
             {dare.title}
@@ -50,7 +53,7 @@ export function DareProgressRow({ dare, now, onPress }: Props) {
 
         {/* Proof is in: the clock no longer matters */}
         {!inReview && <TimeProgressBar progress={progress} />}
-      </ThemedView>
+      </View>
     </Pressable>
   );
 }

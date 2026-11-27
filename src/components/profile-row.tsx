@@ -67,9 +67,9 @@ export function ActionButton({
   const theme = useTheme();
   const isPrimary = variant === "primary";
   const textColor = isPrimary
-    ? theme.background
+    ? theme.onAccent
     : variant === "danger"
-      ? "#E5484D"
+      ? theme.danger
       : theme.text;
 
   return (
@@ -82,7 +82,7 @@ export function ActionButton({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: isPrimary ? theme.text : theme.backgroundElement,
+          backgroundColor: isPrimary ? theme.accent : theme.backgroundElement,
         },
         pressed && styles.pressed,
       ]}

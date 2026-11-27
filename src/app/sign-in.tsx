@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useI18n } from "@/i18n";
+import { Colors } from "@/constants/theme";
 
 type Mode = "signIn" | "signUp";
 
@@ -168,7 +169,7 @@ export default function SignInScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={Colors.light.onAccent} />
             ) : (
               <Text style={styles.buttonText}>
                 {isSignUp ? t("auth.signUp") : t("auth.signIn")}
@@ -188,12 +189,12 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" },
+  safeArea: { flex: 1, backgroundColor: Colors.light.background },
   container: { flex: 1, justifyContent: "center", padding: 24 },
   title: { fontSize: 36, fontWeight: "800", textAlign: "center" },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: Colors.light.textSecondary,
     textAlign: "center",
     marginTop: 8,
     marginBottom: 32,
@@ -201,22 +202,26 @@ const styles = StyleSheet.create({
   form: { gap: 12 },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.light.backgroundSelected,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
   },
-  error: { color: "#c62828" },
-  info: { color: "#2e7d32" },
+  error: { color: Colors.light.danger },
+  info: { color: Colors.light.success },
   button: {
-    backgroundColor: "#111",
+    backgroundColor: Colors.light.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 4,
   },
   buttonPressed: { opacity: 0.7 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  switchText: { color: "#555", textAlign: "center", marginTop: 8 },
+  buttonText: { color: Colors.light.onAccent, fontSize: 16, fontWeight: "600" },
+  switchText: {
+    color: Colors.light.textSecondary,
+    textAlign: "center",
+    marginTop: 8,
+  },
 });

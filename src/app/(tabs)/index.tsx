@@ -20,10 +20,16 @@ import { DeadlineRing } from "@/components/deadline-ring";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import {
+  Colors,
+  BottomTabInset,
+  MaxContentWidth,
+  Spacing,
+} from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
-import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
+import { GlassCard } from "@/components/glass-card";
+import { GlassScreen } from "@/components/glass-screen";
 
 function openDare(dare: Dare) {
   router.push({ pathname: "/dares/[id]", params: { id: String(dare.id) } });
@@ -31,7 +37,6 @@ function openDare(dare: Dare) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const theme = useTheme();
   const now = useNow();
   const { t } = useI18n();
   const { session } = useAuth();
@@ -65,134 +70,140 @@ export default function HomeScreen() {
   });
 
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.background }}
-      contentContainerStyle={[styles.content, platformPadding]}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-      }
-    >
-      <View style={styles.container}>
-        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+    <GlassScreen>
+      <ScrollView
+        contentContainerStyle={[styles.content, platformPadding]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+        }
+      >
+        <View style={styles.container}>
+          {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
-        {/* Invitations live on the Dares tab; just point there */}
-        {invitations > 0 && (
-          <Pressable
-            onPress={() => router.push("/dares")}
-            style={({ pressed }) => pressed && styles.pressed}
-          >
-            <ThemedView type="backgroundElement" style={styles.notice}>
-              <ThemedText type="smallBold">
-                {invitations === 1
-                  ? t("home.invitationsOne")
-                  : t("home.invitationsOther", { count: invitations })}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {t("home.view")}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
-        )}
-
-        {!dares ? (
-          !error && <ActivityIndicator style={styles.loading} />
-        ) : mine.length === 0 ? (
-          <View style={styles.empty}>
-            <ThemedText type="subtitle" style={styles.center}>
-              {t("home.allDone")}
-            </ThemedText>
-            <ThemedText themeColor="textSecondary" style={styles.center}>
-              {t("home.noOpenDares")}
-            </ThemedText>
+          {/* Invitations live on the Dares tab; just point there */}
+          {invitations > 0 && (
             <Pressable
-              onPress={() => router.push("/create")}
+              onPress={() => router.push("/dares")}
               style={({ pressed }) => pressed && styles.pressed}
             >
-              <ThemedView type="backgroundSelected" style={styles.button}>
-                <ThemedText type="smallBold">{t("home.createDare")}</ThemedText>
-              </ThemedView>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            {/* The dare with the closest deadline, big */}
-            {next && (
-              <Pressable
-                onPress={() => openDare(next)}
-                style={({ pressed }) => [
-                  styles.hero,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t("home.nextDue")}
+              <GlassCard style={styles.notice}>
+                <ThemedText type="smallBold">
+                  {invitations === 1
+                    ? t("home.invitationsOne")
+                    : t("home.invitationsOther", { count: invitations })}
                 </ThemedText>
-                <DeadlineRing progress={dareProgress(next, now)} />
-                <View style={styles.heroText}>
-                  <ThemedText
-                    type="default"
-                    style={[styles.center, styles.heroTitle]}
-                    numberOfLines={2}
-                  >
-                    {next.title}
-                  </ThemedText>
-                  <ThemedText
-                    type="small"
-                    themeColor="textSecondary"
-                    style={styles.center}
-                  >
-                    {next.creator_id === myId
-                      ? t("home.ownDare")
-                      : t("home.fromPerson", {
-                          name: personName(next.creator),
-                        })}
-                    {" · "}
-                    {t("home.timePassed", {
-                      percent: Math.round(
-                        dareProgress(next, now).elapsed * 100,
-                      ),
-                    })}
-                  </ThemedText>
-                </View>
-              </Pressable>
-            )}
-
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.center}
-            >
-              {t("home.openCount", { count: running.length })}
-              {inReview > 0 &&
-                ` · ${t("home.inReviewCount", { count: inReview })}`}
-            </ThemedText>
-
-            <View style={styles.list}>
-              <ThemedText type="smallBold" style={styles.listTitle}>
-                {t("home.yourDares")}
-              </ThemedText>
-              {mine.map((dare) => (
-                <DareProgressRow
-                  key={dare.id}
-                  dare={dare}
-                  now={now}
-                  onPress={() => openDare(dare)}
-                />
-              ))}
-            </View>
-          </>
-        )}
-
-        <View style={styles.account}>
-          {session?.user.email && (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t("auth.signedInAs", { email: session.user.email })}
-            </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t("home.view")}
+                </ThemedText>
+              </GlassCard>
+            </Pressable>
           )}
-          <SignOutButton />
+
+          {!dares ? (
+            !error && <ActivityIndicator style={styles.loading} />
+          ) : mine.length === 0 ? (
+            <View style={styles.empty}>
+              <ThemedText type="subtitle" style={styles.center}>
+                {t("home.allDone")}
+              </ThemedText>
+              <ThemedText themeColor="textSecondary" style={styles.center}>
+                {t("home.noOpenDares")}
+              </ThemedText>
+              <Pressable
+                onPress={() => router.push("/create")}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <ThemedView type="backgroundSelected" style={styles.button}>
+                  <ThemedText type="smallBold">
+                    {t("home.createDare")}
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              {/* The dare with the closest deadline, big */}
+              {next && (
+                <Pressable
+                  onPress={() => openDare(next)}
+                  style={({ pressed }) => pressed && styles.pressed}
+                >
+                  <GlassCard
+                    radius={Spacing.five}
+                    padding={Spacing.four}
+                    style={styles.hero}
+                  >
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {t("home.nextDue")}
+                    </ThemedText>
+                    <DeadlineRing progress={dareProgress(next, now)} />
+                    <View style={styles.heroText}>
+                      <ThemedText
+                        type="default"
+                        style={[styles.center, styles.heroTitle]}
+                        numberOfLines={2}
+                      >
+                        {next.title}
+                      </ThemedText>
+                      <ThemedText
+                        type="small"
+                        themeColor="textSecondary"
+                        style={styles.center}
+                      >
+                        {next.creator_id === myId
+                          ? t("home.ownDare")
+                          : t("home.fromPerson", {
+                              name: personName(next.creator),
+                            })}
+                        {" · "}
+                        {t("home.timePassed", {
+                          percent: Math.round(
+                            dareProgress(next, now).elapsed * 100,
+                          ),
+                        })}
+                      </ThemedText>
+                    </View>
+                  </GlassCard>
+                </Pressable>
+              )}
+
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                style={styles.center}
+              >
+                {t("home.openCount", { count: running.length })}
+                {inReview > 0 &&
+                  ` · ${t("home.inReviewCount", { count: inReview })}`}
+              </ThemedText>
+
+              <View style={styles.list}>
+                <ThemedText type="smallBold" style={styles.listTitle}>
+                  {t("home.yourDares")}
+                </ThemedText>
+                {mine.map((dare) => (
+                  <DareProgressRow
+                    key={dare.id}
+                    dare={dare}
+                    now={now}
+                    onPress={() => openDare(dare)}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
+          <View style={styles.account}>
+            {session?.user.email && (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t("auth.signedInAs", { email: session.user.email })}
+              </ThemedText>
+            )}
+            <SignOutButton />
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </GlassScreen>
   );
 }
 
@@ -215,7 +226,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
   },
   loading: {

@@ -4,7 +4,6 @@ import { Platform, Pressable, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
 import { getLocale, useI18n } from "@/i18n";
 
@@ -36,7 +35,6 @@ export function DateField({
 }: DateFieldProps) {
   const theme = useTheme();
   const { t, locale } = useI18n();
-  const scheme = useColorScheme();
   const [open, setOpen] = useState(false);
 
   if (Platform.OS === "ios") {
@@ -47,8 +45,8 @@ export function DateField({
         display="compact"
         minimumDate={minimumDate}
         locale={locale.replace("-", "_")}
-        themeVariant={scheme === "dark" ? "dark" : "light"}
-        accentColor={theme.text}
+        themeVariant="light"
+        accentColor={theme.accent}
         onValueChange={(_, date) => onChange(date)}
       />
     );
@@ -76,7 +74,7 @@ export function DateField({
           mode="date"
           presentation="dialog"
           minimumDate={minimumDate}
-          accentColor={theme.text}
+          accentColor={theme.accent}
           positiveButton={{ label: "OK" }}
           onValueChange={(_, date) => {
             setOpen(false);

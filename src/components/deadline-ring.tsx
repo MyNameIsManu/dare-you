@@ -26,7 +26,7 @@ export function DeadlineRing({
   const { t } = useI18n();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const color = UrgencyColors[progress.urgency];
+  const color = theme[UrgencyColors[progress.urgency]];
   // Big number in the middle, unit below: "3" + "Tage übrig"
   const parts = remainingParts(progress.remainingMs);
   const amount = parts ? String(parts.count) : "0";

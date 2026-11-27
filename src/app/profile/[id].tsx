@@ -6,7 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Avatar } from "@/components/avatar";
 import { FriendshipActions } from "@/components/friendship-actions";
 import { ThemedText } from "@/components/themed-text";
-import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { t, useI18n } from "@/i18n";
 
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.six,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
     textAlign: "center",
   },
   header: {

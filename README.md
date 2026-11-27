@@ -97,6 +97,10 @@ const { t } = useI18n();
 t("common.from", { name }); // "Von Max" / "From Max"
 ```
 
+## Colours and theme
+
+All colours are defined in `src/constants/theme.ts`. To re-brand, change the values in `BASE` (accent, ink, background ...). Glow, soft fills and urgency tones are derived from them. Components read tokens through `useTheme()`; they contain no hex values. The app is light-only for now (`userInterfaceStyle` in `app.json`). Frosted surfaces use `src/components/glass-card.tsx`.
+
 ## Web deployment
 
 Every push to `main` runs [.github/workflows/deploy-web.yml](.github/workflows/deploy-web.yml). The workflow:

@@ -17,7 +17,7 @@ import {
 import { FriendLists } from "@/components/friend-lists";
 import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { t, useI18n } from "@/i18n";
 
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     // Hide the browser's default focus ring; the bar's border shows focus instead
     ...({ outlineStyle: "none" } as object),
   },
-  error: { color: "#c62828", marginTop: 8 },
+  error: { color: Colors.light.danger, marginTop: 8 },
   empty: { textAlign: "center", marginTop: 24 },
-  status: { color: "#2e7d32", fontSize: 14 },
+  status: { color: Colors.light.success, fontSize: 14 },
 });

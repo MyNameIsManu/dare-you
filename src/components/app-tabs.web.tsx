@@ -8,7 +8,7 @@ import {
 } from "expo-router/ui";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useI18n } from "@/i18n";
 
 import { useAuth } from "@/../utils/auth-context";
@@ -112,12 +112,12 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 5,
     borderRadius: 9,
-    backgroundColor: "#E5484D",
+    backgroundColor: Colors.light.danger,
     alignItems: "center",
     justifyContent: "center",
   },
   badgeText: {
-    color: "#ffffff",
+    color: Colors.light.onAccent,
     fontSize: 11,
     lineHeight: 14,
   },

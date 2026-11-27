@@ -1,11 +1,22 @@
 import { AuthProvider, useAuth } from "@/../utils/auth-context";
 import { DaresProvider } from "@/../utils/dares-context";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "react-native";
 
 import { SettingsProvider } from "@/components/settings-drawer";
+import { Colors } from "@/constants/theme";
 import { useI18n } from "@/i18n";
+
+/** Navigation chrome (headers, back button, screen background) follows our tokens. */
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Colors.light.accent,
+    background: Colors.light.background,
+    text: Colors.light.text,
+  },
+};
 
 export default function RootLayout() {
   return (
@@ -23,7 +34,6 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { session, isLoading } = useAuth();
-  const colorScheme = useColorScheme();
   // Re-renders the stack when the language changes, so titles update
   const { t } = useI18n();
 
@@ -31,7 +41,7 @@ function RootNavigator() {
   if (isLoading) return null;
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navigationTheme}>
       <Stack>
         {/* Only reachable when logged in */}
         <Stack.Protected guard={!!session}>

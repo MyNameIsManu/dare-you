@@ -1,3 +1,4 @@
+import type { ThemeColor } from "../src/constants/theme";
 import { t } from "../src/i18n";
 import type { Dare } from "./dares";
 
@@ -6,11 +7,12 @@ const DAY = 24 * HOUR;
 
 export type Urgency = "calm" | "soon" | "urgent";
 
-export const UrgencyColors: Record<Urgency, string> = {
-  calm: "#30A46C",
-  soon: "#F76B15",
-  urgent: "#E5484D",
-};
+/** Theme token per urgency. Use it as `theme[UrgencyColors[urgency]]`. */
+export const UrgencyColors = {
+  calm: "urgencyCalm",
+  soon: "urgencySoon",
+  urgent: "urgencyUrgent",
+} as const satisfies Record<Urgency, ThemeColor>;
 
 export type DareProgress = {
   /** Share of the time span already used, 0–1 */
@@ -35,7 +37,7 @@ export function dareProgress(dare: Dare, now: number): DareProgress {
   const remainingMs = end - now;
   const elapsed = Math.min(Math.max((now - start) / total, 0), 1);
 
-  // Colour by absolute time left, so a 3-hour dare is red even at 0 %
+  // Tone by absolute time left, so a 3-hour dare is 'urgent' even at 0 %
   const urgency: Urgency =
     remainingMs < DAY
       ? "urgent"

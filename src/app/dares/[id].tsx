@@ -23,9 +23,11 @@ import {
 
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
-import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { getLocale, t, useI18n } from "@/i18n";
+import { glassSurface } from "@/components/glass-card";
+import { GlassScreen } from "@/components/glass-screen";
 
 type PickedPhoto = { uri: string; mimeType?: string | null };
 
@@ -154,11 +156,10 @@ export default function DareDetailScreen() {
   const canReview = isCreator && !isOwnDare && dare.status === "submitted";
 
   return (
-    <>
+    <GlassScreen>
       <Stack.Screen options={{ title: dare.title }} />
 
       <ScrollView
-        style={{ backgroundColor: theme.background }}
         contentContainerStyle={styles.content}
         contentInsetAdjustmentBehavior="automatic"
       >
@@ -187,12 +188,7 @@ export default function DareDetailScreen() {
         </View>
 
         {/* Where the dare stands */}
-        <View
-          style={[
-            styles.statusBox,
-            { backgroundColor: theme.backgroundElement },
-          ]}
-        >
+        <View style={[styles.statusBox, glassSurface(theme)]}>
           <ThemedText type="smallBold">
             {statusText(dare, { isAssignee, isCreator, isOverdue })}
           </ThemedText>
@@ -279,7 +275,7 @@ export default function DareDetailScreen() {
 
         {error && <ThemedText style={styles.error}>{error}</ThemedText>}
       </ScrollView>
-    </>
+    </GlassScreen>
   );
 }
 
@@ -353,9 +349,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   overdue: {
-    color: "#E5484D",
+    color: Colors.light.danger,
   },
   error: {
-    color: "#c62828",
+    color: Colors.light.danger,
   },
 });
