@@ -5,7 +5,8 @@ import { Platform, Pressable, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { getLocale, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
+import { formatDate } from "@/i18n/format";
 
 export type DateFieldProps = {
   value: Date;
@@ -13,15 +14,6 @@ export type DateFieldProps = {
   minimumDate?: Date;
   accessibilityLabel?: string;
 };
-
-export function formatDate(date: Date) {
-  return date.toLocaleDateString(getLocale(), {
-    weekday: "short",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 /**
  * iOS: native compact picker (tap the pill → calendar popover).

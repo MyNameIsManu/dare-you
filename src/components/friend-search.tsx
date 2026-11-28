@@ -1,25 +1,34 @@
 import {
+  getFriendLists,
   searchUsers,
   sendFriendRequest,
+  type FriendLists as Lists,
   type PublicProfile,
 } from "@/../utils/friends";
+import { useFocusEffect } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 
-import { FriendLists } from "@/components/friend-lists";
+import {
+  FriendLists,
+  GlassList,
+  relationTo,
+  StatusPill,
+} from "@/components/friend-lists";
+import { glassSurface } from "@/components/glass-card";
 import { ActionButton, ProfileRow } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { t, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
 
 type SendStatus = Awaited<ReturnType<typeof sendFriendRequest>>;
 /** Result of tapping "Add": a status (translated when shown) or an error message */
@@ -27,13 +36,22 @@ type SendResult = { status: SendStatus } | { error: string };
 
 export function FriendSearch() {
   const theme = useTheme();
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [results, setResults] = useState<PublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Per-user feedback after tapping "Add", keyed by profile id
+  // My friend lists, to show who is already a friend in the results
+  const [lists, setLists] = useState<Lists | null>(null);
+  const loadLists = useCallback(() => {
+    getFriendLists()
+      .then(setLists)
+      .catch(() => setLists(null));
+  }, []);
+  useFocusEffect(loadLists);
+
   const [sent, setSent] = useState<Record<string, SendResult>>({});
 
   const isSearching = query.trim().length >= 2;
@@ -69,7 +87,7 @@ export function FriendSearch() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, t]);
 
   async function handleAdd(profile: PublicProfile) {
     if (!profile.username) return;
@@ -98,10 +116,9 @@ export function FriendSearch() {
       <View
         style={[
           styles.searchBar,
-          {
-            backgroundColor: theme.backgroundElement,
-            borderColor: focused ? theme.textSecondary : "transparent",
-          },
+          glassSurface(theme),
+          { borderColor: focused ? theme.text : theme.glassBorder },
+          focused && styles.searchFocused,
         ]}
       >
         <SymbolView
@@ -132,35 +149,43 @@ export function FriendSearch() {
         <>
           {error && <Text style={styles.error}>{error}</Text>}
 
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
+          <ScrollView
             keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={
-              !loading && !error ? (
-                <ThemedText themeColor="textSecondary" style={styles.empty}>
-                  {t("friends.noUsers")}
-                </ThemedText>
-              ) : undefined
-            }
-            renderItem={({ item }) => (
-              <ProfileRow
-                profile={item}
-                right={
-                  sent[item.id] ? (
-                    <Text style={styles.status}>
-                      {sendResultText(sent[item.id])}
-                    </Text>
-                  ) : (
-                    <ActionButton
-                      label={t("friends.add")}
-                      onPress={() => handleAdd(item)}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.results}
+          >
+            {results.length === 0 && !loading && !error ? (
+              <ThemedText themeColor="textSecondary" style={styles.empty}>
+                {t("friends.noUsers")}
+              </ThemedText>
+            ) : (
+              <GlassList>
+                {results.map((item, i) => {
+                  const relation = lists ? relationTo(lists, item.id) : "none";
+                  return (
+                    <ProfileRow
+                      key={item.id}
+                      card
+                      last={i === results.length - 1}
+                      profile={item}
+                      right={
+                        sent[item.id] ? (
+                          <StatusPill text={sendResultText(sent[item.id])} />
+                        ) : relation === "none" ? (
+                          <ActionButton
+                            label={t("friends.add")}
+                            onPress={() => handleAdd(item)}
+                          />
+                        ) : (
+                          <StatusPill text={t(`profile.status.${relation}`)} />
+                        )
+                      }
                     />
-                  )
-                }
-              />
+                  );
+                })}
+              </GlassList>
             )}
-          />
+          </ScrollView>
         </>
       )}
     </View>
@@ -173,11 +198,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
-    height: 44,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 22,
+    height: 52,
+    paddingHorizontal: Spacing.three + 1,
+    borderRadius: 26,
     borderWidth: 1,
   },
+  searchFocused: { borderWidth: 2 },
+  results: { paddingTop: Spacing.three, paddingBottom: Spacing.four },
   input: {
     flex: 1,
     height: "100%",
@@ -187,5 +214,4 @@ const styles = StyleSheet.create({
   },
   error: { color: Colors.light.danger, marginTop: 8 },
   empty: { textAlign: "center", marginTop: 24 },
-  status: { color: Colors.light.success, fontSize: 14 },
 });

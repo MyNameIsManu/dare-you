@@ -28,6 +28,8 @@ import { useTheme } from "@/hooks/use-theme";
 import { getLocale, t, useI18n } from "@/i18n";
 import { glassSurface } from "@/components/glass-card";
 import { GlassScreen } from "@/components/glass-screen";
+import { DareStepper } from "@/components/dare-stepper";
+import { BigButton } from "@/components/big-button";
 
 type PickedPhoto = { uri: string; mimeType?: string | null };
 
@@ -43,7 +45,7 @@ export default function DareDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dareId = Number(id);
   const theme = useTheme();
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const { session } = useAuth();
   const myId = session?.user.id;
 
@@ -64,7 +66,7 @@ export default function DareDetailScreen() {
     } catch (e) {
       setError(e instanceof Error ? e.message : t("detail.loadFailed"));
     }
-  }, [dareId]);
+  }, [dareId, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -187,6 +189,9 @@ export default function DareDetailScreen() {
           </ThemedText>
         </View>
 
+        {/* sent → accepted → proof → review (only between two people) */}
+        {!isOwnDare && <DareStepper status={dare.status} />}
+
         {/* Where the dare stands */}
         <View style={[styles.statusBox, glassSurface(theme)]}>
           <ThemedText type="smallBold">
@@ -258,18 +263,26 @@ export default function DareDetailScreen() {
 
         {/* Creator: decide on the proof */}
         {canReview && (
-          <View style={styles.buttons}>
-            <ActionButton
-              label={t("common.decline")}
-              variant="danger"
-              disabled={busy}
-              onPress={reject}
-            />
-            <ActionButton
-              label={t("detail.approve")}
-              busy={busy}
-              onPress={() => run(() => reviewDareProof(dareId, true))}
-            />
+          <View style={styles.section}>
+            <ThemedText type="subtitle">
+              {t("detail.reviewQuestion")}
+            </ThemedText>
+            <View style={styles.bigButtons}>
+              <BigButton
+                label={t("detail.notQuite")}
+                variant="secondary"
+                disabled={busy}
+                onPress={reject}
+              />
+              <BigButton
+                label={t("detail.counts")}
+                busy={busy}
+                onPress={() => run(() => reviewDareProof(dareId, true))}
+              />
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              {isOverdue ? t("detail.rejectFails") : t("detail.rejectReopens")}
+            </ThemedText>
           </View>
         )}
 
@@ -341,7 +354,11 @@ const styles = StyleSheet.create({
   photo: {
     width: "100%",
     aspectRatio: 3 / 4,
-    borderRadius: Spacing.three,
+    borderRadius: Spacing.four,
+  },
+  bigButtons: {
+    flexDirection: "row",
+    gap: Spacing.two,
   },
   buttons: {
     flexDirection: "row",

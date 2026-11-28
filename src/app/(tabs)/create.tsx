@@ -3,9 +3,10 @@ import {
   formatNextDareTime,
   getNextDareAllowedAt,
 } from "@/../utils/dares";
-import type { PublicProfile } from "@/../utils/friends";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { getProfile, type PublicProfile } from "@/../utils/friends";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { useCallback, useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -14,17 +15,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChatBubble, useBubbleColors } from "@/components/chat-bubble";
 import { DateField } from "@/components/date-field";
-import { FriendPicker } from "@/components/friend-picker";
-import { SegmentedControl } from "@/components/segmented-control";
+import { formatDate } from "@/i18n/format";
+import { BigButton } from "@/components/big-button";
+import { friendName, RecipientPicker } from "@/components/recipient-picker";
 import { ThemedText } from "@/components/themed-text";
 import {
   Colors,
@@ -33,15 +30,27 @@ import {
   Spacing,
 } from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
+import { useIsPhoneWeb, usePhoneWebPadding } from "@/hooks/use-phone-web";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n } from "@/i18n";
 import { GlassScreen } from "@/components/glass-screen";
 import { glassSurface } from "@/components/glass-card";
+import { ChoiceChip } from "@/components/choice-chip";
 
-const TARGETS = ["me", "you"] as const;
-type Target = (typeof TARGETS)[number];
+type Target = "me" | "you";
 
-const ANIMATION_MS = 250;
+/** Quick deadline choices: days from today. */
+const DUE_CHIPS = [
+  { days: 0, label: "create.today" },
+  { days: 1, label: "create.dueChips.tomorrow" },
+  { days: 3, label: "create.dueChips.in3Days" },
+  { days: 7, label: "create.dueChips.inWeek" },
+] as const;
+const IDEAS = [
+  "create.ideas.idea1",
+  "create.ideas.idea2",
+  "create.ideas.idea3",
+] as const;
 const MIN_DESCRIPTION_LETTERS = 5;
 
 /** Counts letters only (incl. umlauts) — spaces, digits and punctuation don't count. */
@@ -69,8 +78,18 @@ export default function CreateScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
     ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
+    // The send button below the scroll view carries the tab bar inset
+    bottom: Spacing.three,
   };
+  const isPhoneWeb = useIsPhoneWeb();
+  const phoneWebPadding = usePhoneWebPadding();
+  const footerBottom = Platform.select({
+    // Phone-sized web: the send button sits above the floating tab bar
+    web: isPhoneWeb
+      ? phoneWebPadding.paddingBottom - Spacing.one
+      : Spacing.four,
+    default: safeAreaInsets.bottom + BottomTabInset + Spacing.two,
+  });
   const theme = useTheme();
   const { t } = useI18n();
   const bubble = useBubbleColors();
@@ -80,11 +99,33 @@ export default function CreateScreen() {
   const [description, setDescription] = useState("");
   const [today] = useState(startOfToday);
   const [dueDate, setDueDate] = useState(() => addDays(startOfToday(), 1));
+  // "Pick a date": show the date picker instead of only the quick chips
+  const [customDate, setCustomDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Daily limit: when daring a friend is possible again (null = now)
   const [nextAllowedAt, setNextAllowedAt] = useState<Date | null>(null);
   const now = useNow();
+
+  // Set by the "Dare" button in the Friends tab: pick that friend right away
+  const { friendId } = useLocalSearchParams<{ friendId?: string }>();
+  useEffect(() => {
+    if (!friendId) return;
+    let cancelled = false;
+    getProfile(friendId)
+      .then((profile) => {
+        if (cancelled || !profile) return;
+        setTarget("you");
+        setFriend(profile);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) router.setParams({ friendId: undefined });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [friendId]);
 
   const loadLimit = useCallback(() => {
     getNextDareAllowedAt()
@@ -114,6 +155,14 @@ export default function CreateScreen() {
         ? t("create.needTitle")
         : t("create.needDescription", { count: MIN_DESCRIPTION_LETTERS });
 
+  const submitLabel = saving
+    ? t("create.saving")
+    : isForMe
+      ? t("create.sendSelf")
+      : friend
+        ? t("create.sendTo", { name: friendName(friend) })
+        : t("create.submit");
+
   async function handleSubmit() {
     if (!canSubmit) return;
     setSaving(true);
@@ -131,9 +180,10 @@ export default function CreateScreen() {
       setTitle("");
       setDescription("");
       setDueDate(addDays(startOfToday(), 1));
+      setCustomDate(false);
       // Switch to the Dares tab and let it highlight the new dare
       router.navigate({
-        pathname: "/dares",
+        pathname: "/",
         params: { highlight: String(id) },
       });
     } catch (e) {
@@ -152,10 +202,10 @@ export default function CreateScreen() {
       paddingRight: insets.right,
       paddingBottom: insets.bottom,
     },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
+    web: isPhoneWeb
+      ? // Bottom space is carried by the footer with the send button
+        { paddingTop: phoneWebPadding.paddingTop, paddingBottom: Spacing.four }
+      : { paddingTop: Spacing.six, paddingBottom: Spacing.four },
   });
 
   return (
@@ -168,200 +218,236 @@ export default function CreateScreen() {
         contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
       >
         <View style={styles.container}>
-          <View style={styles.titleContainer}>
-            <ThemedText type="subtitle">{t("create.iDare")}</ThemedText>
-            <SegmentedControl
-              options={TARGETS}
-              value={target}
-              onChange={setTarget}
-              getLabel={(option) => t(`create.${option}`)}
+          <ThemedText type="subtitle" style={styles.heading}>
+            {t("create.newDare")}
+          </ThemedText>
+
+          <View style={styles.section}>
+            <ThemedText type="smallBold" style={styles.sectionTitle}>
+              {t("create.whoFor")}
+            </ThemedText>
+            <RecipientPicker
+              forMe={isForMe}
+              value={friend}
+              onSelectMe={() => {
+                setTarget("me");
+                setFriend(null);
+              }}
+              onSelectFriend={(f) => {
+                setTarget("you");
+                setFriend(f);
+              }}
             />
+          </View>
 
-            {target === "you" && (
-              <Animated.View
-                entering={FadeIn.duration(ANIMATION_MS)}
-                exiting={FadeOut.duration(ANIMATION_MS / 2)}
-                style={styles.stretch}
-              >
-                <FriendPicker value={friend} onChange={setFriend} />
-              </Animated.View>
-            )}
-
-            <Animated.View
-              layout={LinearTransition.duration(ANIMATION_MS)}
-              style={styles.group}
-            >
-              <ThemedText type="subtitle">{t("create.until")}</ThemedText>
-              <DateField
-                value={dueDate}
-                onChange={setDueDate}
-                minimumDate={today}
-                accessibilityLabel={t("create.dueDate")}
-              />
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                placeholder={t("create.titlePlaceholder")}
-                placeholderTextColor={theme.textSecondary}
-                maxLength={120}
-                autoCapitalize="sentences"
-                returnKeyType="done"
-                accessibilityLabel={t("create.titlePlaceholder")}
-                style={[
-                  styles.friendInput,
-                  styles.stretch,
-                  glassSurface(theme),
-                  { color: theme.text },
-                ]}
-              />
-              <ChatBubble>
-                <TextInput
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder={t("create.descriptionPlaceholder")}
-                  placeholderTextColor={bubble.meta}
-                  multiline
-                  textAlignVertical="top"
-                  autoCapitalize="sentences"
-                  returnKeyType="done"
-                  submitBehavior="blurAndSubmit"
-                  accessibilityLabel={t("create.descriptionLabel")}
-                  style={[styles.descriptionInput, { color: bubble.text }]}
-                />
-              </ChatBubble>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !canSubmit, busy: saving }}
-                accessibilityHint={canSubmit ? undefined : submitHint}
-                disabled={!canSubmit}
-                onPress={handleSubmit}
-                style={({ pressed }) => [
-                  styles.submitButton,
-                  {
-                    backgroundColor: canSubmit
-                      ? theme.accent
-                      : theme.backgroundElement,
-                  },
-                  pressed && styles.pressed,
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    styles.submitLabel,
-                    {
-                      color: canSubmit ? theme.onAccent : theme.textSecondary,
-                    },
+          <View style={styles.section}>
+            <ThemedText type="smallBold" style={styles.sectionTitle}>
+              {t("create.challenge")}
+            </ThemedText>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder={t("create.titlePlaceholder")}
+              placeholderTextColor={theme.textSecondary}
+              maxLength={120}
+              multiline
+              autoCapitalize="sentences"
+              returnKeyType="done"
+              submitBehavior="blurAndSubmit"
+              accessibilityLabel={t("create.titlePlaceholder")}
+              style={[
+                styles.titleInput,
+                glassSurface(theme),
+                { color: theme.text, borderColor: theme.text },
+              ]}
+            />
+            <View style={styles.chips}>
+              {IDEAS.map((key) => (
+                <Pressable
+                  key={key}
+                  accessibilityRole="button"
+                  onPress={() => setTitle(t(key))}
+                  style={({ pressed }) => [
+                    styles.ideaChip,
+                    glassSurface(theme),
+                    pressed && styles.pressed,
                   ]}
                 >
-                  {saving ? t("create.saving") : t("create.submit")}
-                </ThemedText>
-              </Pressable>
+                  <ThemedText type="smallBold">{t(key)}</ThemedText>
+                </Pressable>
+              ))}
+            </View>
+            <ChatBubble>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder={t("create.descriptionPlaceholder")}
+                placeholderTextColor={bubble.meta}
+                multiline
+                textAlignVertical="top"
+                autoCapitalize="sentences"
+                returnKeyType="done"
+                submitBehavior="blurAndSubmit"
+                accessibilityLabel={t("create.descriptionLabel")}
+                style={[styles.descriptionInput, { color: bubble.text }]}
+              />
+            </ChatBubble>
+          </View>
 
-              {/* Temporary feedback — design follows later */}
-              {!canSubmit && !saving && (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {submitHint}
-                </ThemedText>
-              )}
-              {error && <ThemedText style={styles.error}>{error}</ThemedText>}
-            </Animated.View>
+          <View style={styles.section}>
+            <ThemedText type="smallBold" style={styles.sectionTitle}>
+              {t("create.untilWhen")}
+            </ThemedText>
+            <View accessibilityRole="radiogroup" style={styles.chips}>
+              {DUE_CHIPS.map((chip) => (
+                <ChoiceChip
+                  key={chip.days}
+                  label={t(chip.label)}
+                  selected={
+                    !customDate &&
+                    dueDate.toDateString() ===
+                      addDays(today, chip.days).toDateString()
+                  }
+                  onPress={() => {
+                    setCustomDate(false);
+                    setDueDate(addDays(today, chip.days));
+                  }}
+                />
+              ))}
+              <ChoiceChip
+                dashed
+                label={t("create.pickDate")}
+                selected={customDate}
+                onPress={() => setCustomDate(true)}
+              />
+            </View>
+            {customDate && (
+              <View style={styles.dateRow}>
+                <DateField
+                  value={dueDate}
+                  onChange={setDueDate}
+                  minimumDate={today}
+                  accessibilityLabel={t("create.dueDate")}
+                />
+              </View>
+            )}
+            <View style={[styles.infoBox, glassSurface(theme)]}>
+              <SymbolView
+                name={{ ios: "clock", android: "schedule", web: "schedule" }}
+                size={18}
+                tintColor={theme.text}
+              />
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                style={styles.infoText}
+              >
+                {isForMe || !friend
+                  ? t("create.dueOn", { date: formatDate(dueDate) })
+                  : t("create.dueOnFriend", {
+                      date: formatDate(dueDate),
+                      name: friendName(friend),
+                    })}
+              </ThemedText>
+            </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: footerBottom }]}>
+        {!canSubmit && !saving && (
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            style={styles.hint}
+          >
+            {submitHint}
+          </ThemedText>
+        )}
+        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+        <View style={styles.footerRow}>
+          <BigButton
+            label={submitLabel}
+            busy={saving}
+            disabled={!canSubmit}
+            onPress={handleSubmit}
+          />
+        </View>
+      </View>
     </GlassScreen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  scrollView: {
-    flex: 1,
-  },
+  scrollView: { flex: 1 },
   contentContainer: {
     flexDirection: "row",
     justifyContent: "center",
   },
   container: {
-    maxWidth: MaxContentWidth,
+    // Without a width the container grows to its widest child (e.g. the
+    // suggestion chips) and overflows narrow screens on the left
+    width: "100%",
+    maxWidth: Math.min(560, MaxContentWidth),
     flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: "center",
+    gap: Spacing.five,
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+    paddingVertical: Spacing.four,
   },
-  stretch: {
-    alignSelf: "stretch",
-  },
-  submitButton: {
-    alignSelf: "stretch",
-    alignItems: "center",
+  heading: { textAlign: "center" },
+  section: { gap: Spacing.three },
+  sectionTitle: { fontSize: 18, lineHeight: 22 },
+  titleInput: {
+    minHeight: 72,
     paddingVertical: Spacing.three,
-    borderRadius: Spacing.five,
-    marginTop: Spacing.two,
-  },
-  submitLabel: {
-    fontSize: 20,
-    lineHeight: 28,
-    fontWeight: 700,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  error: {
-    color: Colors.light.danger,
-    textAlign: "center",
-  },
-  group: {
-    alignSelf: "stretch",
-    alignItems: "center",
-    gap: Spacing.three,
-  },
-  friendInput: {
-    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-    fontSize: 16,
+    borderRadius: Spacing.four,
+    borderWidth: 2,
+    fontSize: 18,
     lineHeight: 24,
+    fontWeight: 600,
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.two,
+  },
+  ideaChip: {
+    minHeight: 40,
+    justifyContent: "center",
+    paddingHorizontal: Spacing.three,
+    borderRadius: Spacing.four,
   },
   descriptionInput: {
-    minHeight: 96,
+    minHeight: 72,
     maxHeight: 240,
     padding: 0,
     fontSize: 16,
     lineHeight: 22,
   },
-  centerText: {
-    textAlign: "center",
-  },
-  linkButton: {
+  dateRow: { alignItems: "flex-start" },
+  infoBox: {
     flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: Spacing.four,
+  },
+  infoText: { flex: 1 },
+  footer: {
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: "center",
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: "center",
-  },
-  imageTutorial: {
-    width: "100%",
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
+    paddingTop: Spacing.two,
+    gap: Spacing.two,
     alignSelf: "center",
+    width: "100%",
+    maxWidth: Math.min(560, MaxContentWidth),
+  },
+  footerRow: { flexDirection: "row" },
+  hint: { textAlign: "center" },
+  pressed: { opacity: 0.7 },
+  error: {
+    color: Colors.light.danger,
+    textAlign: "center",
   },
 });

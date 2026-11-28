@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
+import { glassSurface } from "@/components/glass-card";
 import { ThemedText } from "@/components/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -37,11 +38,7 @@ export function Avatar({
 
   return (
     <View
-      style={[
-        styles.fallback,
-        shape,
-        { backgroundColor: theme.backgroundSelected },
-      ]}
+      style={[styles.fallback, shape, glassSurface(theme)]}
       accessible={false}
     >
       <ThemedText

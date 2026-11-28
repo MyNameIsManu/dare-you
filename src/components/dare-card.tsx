@@ -19,7 +19,7 @@ import { TimeProgressBar } from "@/components/time-progress-bar";
 import { Spacing } from "@/constants/theme";
 import { useNow } from "@/hooks/use-now";
 import { useTheme } from "@/hooks/use-theme";
-import { getLocale, t, useI18n } from "@/i18n";
+import { getLocale, useI18n } from "@/i18n";
 import { glassSurface } from "@/components/glass-card";
 
 function formatDeadline(iso: string) {
@@ -48,7 +48,7 @@ export function DareCard({
   onPress?: () => void;
 }) {
   const theme = useTheme();
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const now = useNow();
   const glow = useSharedValue(0);
 

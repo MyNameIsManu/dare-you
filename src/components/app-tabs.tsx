@@ -16,14 +16,6 @@ export default function AppTabs() {
       labelStyle={{ selected: { color: colors.text } }}
     >
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>{t("tabs.home")}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require("@/assets/images/tabIcons/home.png")}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="dares">
         <NativeTabs.Trigger.Label>{t("tabs.dares")}</NativeTabs.Trigger.Label>
         {/* Invitations + proofs to review: things waiting for me */}
         {waitingForMe > 0 && (
@@ -40,8 +32,8 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="create">
         <NativeTabs.Trigger.Label>{t("tabs.create")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          sf={{ default: "plus.message", selected: "plus.message.fill" }}
-          md="local_fire_department"
+          src={require("@/assets/images/tabIcons/create.png")}
+          renderingMode="original"
         />
       </NativeTabs.Trigger>
 

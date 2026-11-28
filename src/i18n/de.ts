@@ -76,6 +76,7 @@ export const de = {
     inReviewCount: "{count} in Prüfung",
     yourDares: "Deine Dares",
     inReview: "In Prüfung",
+    greeting: "Hallo {name}",
   },
   progress: {
     // Units only: shown as "3 Tage" or big "3" + "Tage übrig" in the ring
@@ -88,6 +89,12 @@ export const de = {
     dayOf: "Tag {passed} / {total}",
   },
   dares: {
+    tabMine: "Für mich",
+    tabTheirs: "Von mir",
+    pendingTitle: "Wartende Dares",
+    submittedTitle: "Eingereicht",
+    toReviewDaresTitle: "Zu prüfende Dares",
+    doneToggle: "Erledigt · {count}",
     loadFailed: "Dares konnten nicht geladen werden",
     invitationsTitle: "Herausforderungen an dich",
     toReviewTitle: "Zu prüfen",
@@ -134,6 +141,15 @@ export const de = {
     takePhoto: "Foto aufnehmen",
     choosePhoto: "Aus Fotos wählen",
     approve: "Geschafft ✓",
+    reviewQuestion: "Zählt das?",
+    notQuite: "Nicht ganz",
+    counts: "Zählt!",
+    steps: {
+      sent: "Gesendet",
+      accepted: "Angenommen",
+      proof: "Beweis",
+      review: "Prüfung",
+    },
     status: {
       pendingMe:
         "Du hast diesen Dare noch nicht angenommen – das geht im Dares-Tab.",
@@ -155,6 +171,24 @@ export const de = {
     },
   },
   create: {
+    newDare: "Neuer Dare",
+    whoFor: "Für wen?",
+    myself: "Selbst",
+    meShort: "Ich",
+    challenge: "Was ist die Herausforderung?",
+    untilWhen: "Bis wann?",
+    today: "Heute",
+    pickDate: "Datum wählen…",
+    dueOn: "Fällig am {date}.",
+    dueOnFriend:
+      "Fällig am {date}. Bis dahin kann {name} annehmen oder ablehnen.",
+    sendTo: "Dare an {name} senden",
+    sendSelf: "Dare starten",
+    ideas: {
+      idea1: "5 km laufen",
+      idea2: "Fremde um ein Selfie bitten",
+      idea3: "Ohne Handy frühstücken",
+    },
     iDare: "Ich fordere",
     me: "mich",
     you: "dich",
@@ -170,6 +204,11 @@ export const de = {
     saving: "Speichern…",
     submit: "Los!",
     datePickerHint: "Öffnet die Datumsauswahl",
+    dueChips: {
+      tomorrow: "Morgen",
+      in3Days: "In 3 Tagen",
+      inWeek: "In 1 Woche",
+    },
     dailyLimit: "Du kannst ab {time} wieder einen Freund herausfordern.",
     dailyLimitNoTime:
       "Du kannst nur einen Freund pro Tag herausfordern. Versuch es später noch einmal.",
@@ -185,6 +224,12 @@ export const de = {
     noMatch: "Kein Freund gefunden",
   },
   friends: {
+    dare: "Dare",
+    statusRunning: "Läuft: {title}",
+    statusPending: "Dare wartet auf Antwort",
+    statusProof: "Beweis wartet auf dich",
+    statusReviewing: "Prüft deinen Beweis",
+    wantsToBe: "möchte dein Freund sein",
     title: "Freunde",
     searchPlaceholder: "Nach Nutzername suchen",
     searchFailed: "Suche fehlgeschlagen",
@@ -213,8 +258,8 @@ export const de = {
     statusLoadFailed: "Status konnte nicht geladen werden",
     status: {
       none: "Noch nicht befreundet",
-      outgoing: "Freundschaftsanfrage gesendet",
-      incoming: "Möchte mit dir befreundet sein",
+      outgoing: "Angefragt",
+      incoming: "An-/Ablehnen",
       friends: "✓ Befreundet",
     },
     addFriend: "Als Freund hinzufügen",

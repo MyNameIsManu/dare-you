@@ -34,7 +34,7 @@ export function FriendPicker({
   onChange: (friend: PublicProfile | null) => void;
 }) {
   const theme = useTheme();
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const [friends, setFriends] = useState<PublicProfile[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
@@ -47,7 +47,7 @@ export function FriendPicker({
     } catch (e) {
       setError(e instanceof Error ? e.message : t("friendPicker.loadFailed"));
     }
-  }, []);
+  }, [t]);
 
   // Reload when the tab is shown again, e.g. after accepting a friend request
   useFocusEffect(

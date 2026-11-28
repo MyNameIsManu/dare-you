@@ -2,26 +2,19 @@ import { type ReactNode, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { getLocale } from "@/i18n";
 
-/** Colors of an outgoing ("sent") chat message, for light and dark mode. */
-export const BubbleColors = {
-  light: {
-    background: "#D9FDD3",
-    text: "#111B21",
-    meta: "#667781",
-    ticks: "#53BDEB",
-  },
-  dark: {
-    background: "#005C4B",
-    text: "#E9EDEF",
-    meta: "#AEBAC1",
-    ticks: "#53BDEB",
-  },
-} as const;
-
+/** Colours of the outgoing message bubble, all from the theme. */
 export function useBubbleColors() {
-  return BubbleColors.light; // light mode only for now
+  const theme = useTheme();
+  return {
+    background: theme.accentSoft,
+    text: theme.text,
+    meta: theme.textSecondary,
+    ticks: theme.accent,
+    shadow: theme.glassShadow,
+  };
 }
 
 const TAIL_WIDTH = 10;
@@ -41,7 +34,15 @@ export function ChatBubble({ children }: { children: ReactNode }) {
 
   return (
     <View style={styles.row}>
-      <View style={[styles.bubble, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.bubble,
+          {
+            backgroundColor: colors.background,
+            boxShadow: `0 1px 1px ${colors.shadow}`,
+          },
+        ]}
+      >
         {children}
         <View style={styles.meta}>
           <Text style={[styles.metaText, { color: colors.meta }]}>{time}</Text>
@@ -67,7 +68,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.one,
-    boxShadow: "0 1px 1px rgba(11, 20, 26, 0.13)",
   },
   meta: {
     flexDirection: "row",

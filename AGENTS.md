@@ -40,3 +40,7 @@ Docs: https://docs.expo.dev/eas/index.md
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
 - Colours live only in `src/constants/theme.ts` (`BASE` holds the brand values, `Colors.light` the tokens). Never write hex values in components: use `useTheme()`, `<ThemedText themeColor>` or `<ThemedView type>`. In `StyleSheet.create` (no hooks) use `Colors.light.<token>`. Glass surfaces: `GlassCard`.
+
+## Translations in components
+
+In components always use `const { t } = useI18n();` and never the imported `t` (React Compiler caches the imported one, so the text would not change when the language changes). The imported `t` is only for code outside components (e.g. error messages in utils/).

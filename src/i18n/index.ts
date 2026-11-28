@@ -1,6 +1,6 @@
 import { getLocales } from "expo-localization";
 import "expo-sqlite/localStorage/install";
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { de, type Translations } from "./de";
 import { en } from "./en";
@@ -68,12 +68,12 @@ function subscribe(listener: () => void) {
   };
 }
 
-/**
- * Translate a key into the current language and fill in {placeholders}.
- * Works outside React too (e.g. error messages in utils/).
- */
-export function t(key: TranslationKey, params?: Params): string {
-  let node: unknown = SHEETS[current];
+function translate(
+  language: Language,
+  key: TranslationKey,
+  params?: Params,
+): string {
+  let node: unknown = SHEETS[language];
   for (const part of key.split(".")) {
     node = (node as Record<string, unknown>)[part];
   }
@@ -85,10 +85,26 @@ export function t(key: TranslationKey, params?: Params): string {
 }
 
 /**
+ * Translate a key into the current language and fill in {placeholders}.
+ * Works outside React too (e.g. error messages in utils/).
+ * Inside components use the `t` from useI18n() instead (see there).
+ */
+export function t(key: TranslationKey, params?: Params): string {
+  return translate(current, key, params);
+}
+
+/**
  * Use in components: re-renders them when the language changes.
  *   const { t } = useI18n();
  */
 export function useI18n() {
   const language = useSyncExternalStore(subscribe, getLanguage, getLanguage);
-  return { t, language, locale: LOCALES[language], setLanguage };
+  // A new function per language: React Compiler caches texts by the identity
+  // of `t`, so a stable function would keep showing the old language.
+  const boundT = useMemo(
+    () => (key: TranslationKey, params?: Params) =>
+      translate(language, key, params),
+    [language],
+  );
+  return { t: boundT, language, locale: LOCALES[language], setLanguage };
 }

@@ -8,12 +8,12 @@ import { FriendshipActions } from "@/components/friendship-actions";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { t, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
 
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function ProfileScreen() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, t]);
 
   const name = profile?.display_name ?? profile?.username ?? "";
 

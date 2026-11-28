@@ -25,7 +25,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/../utils/auth-context";
 import { getProfile, type PublicProfile } from "@/../utils/friends";
 import { Avatar } from "@/components/avatar";
+import { glassSurface } from "@/components/glass-card";
 import { SegmentedControl } from "@/components/segmented-control";
+import { SignOutButton } from "@/components/sign-out-button";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -71,11 +73,38 @@ export function SettingsProvider({ children }: PropsWithChildren) {
   );
 }
 
-/** Round gear button that opens the sidebar. */
-export function SettingsButton() {
+/** Round button that opens the sidebar: a gear, or the user's initial. */
+export function SettingsButton({
+  variant = "gear",
+}: {
+  variant?: "gear" | "avatar";
+}) {
   const { open } = useSettings();
   const { t } = useI18n();
   const theme = useTheme();
+  const { session } = useAuth();
+  const meta = session?.user.user_metadata;
+  const name: string = meta?.display_name ?? meta?.username ?? "?";
+
+  if (variant === "avatar") {
+    return (
+      <Pressable
+        onPress={open}
+        accessibilityRole="button"
+        accessibilityLabel={t("settings.open")}
+        hitSlop={8}
+        style={({ pressed }) => [
+          styles.avatarButton,
+          glassSurface(theme),
+          pressed && styles.pressed,
+        ]}
+      >
+        <ThemedText style={styles.avatarLetter}>
+          {name.trim()[0]?.toUpperCase() ?? "?"}
+        </ThemedText>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -141,6 +170,12 @@ function SettingsDrawer({
       cancelled = true;
     };
   }, [myId, isOpen]);
+
+  // Signed out (e.g. via the button below): don't leave the drawer over the sign-in screen
+  const signedIn = !!session;
+  useEffect(() => {
+    if (!signedIn) onClose();
+  }, [signedIn, onClose]);
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: progress.value * 0.4,
@@ -234,12 +269,29 @@ function SettingsDrawer({
             size="small"
           />
         </View>
+
+        <View style={styles.account}>
+          {session?.user.email && (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t("auth.signedInAs", { email: session.user.email })}
+            </ThemedText>
+          )}
+          <SignOutButton />
+        </View>
       </Animated.View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  avatarButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarLetter: { fontSize: 16, lineHeight: 22, fontWeight: 700 },
   pressed: {
     opacity: 0.6,
   },
@@ -286,6 +338,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
+  },
+  account: {
+    marginTop: "auto",
+    alignItems: "center",
+    gap: Spacing.two,
   },
   setting: {
     gap: Spacing.two,

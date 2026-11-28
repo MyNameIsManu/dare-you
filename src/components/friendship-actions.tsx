@@ -19,11 +19,11 @@ import {
 import { ActionButton } from "@/components/profile-row";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing } from "@/constants/theme";
-import { t, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
 
 /** Friendship status with the matching buttons, for a profile screen. */
 export function FriendshipActions({ profile }: { profile: PublicProfile }) {
-  useI18n(); // re-render when the language changes
+  const { t } = useI18n(); // re-renders on language change; use this t (the compiler caches the global one)
   const [status, setStatus] = useState<FriendshipStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function FriendshipActions({ profile }: { profile: PublicProfile }) {
     } catch (e) {
       setError(e instanceof Error ? e.message : t("profile.statusLoadFailed"));
     }
-  }, [profile.id]);
+  }, [profile.id, t]);
 
   // Load on open, and again whenever this screen comes back into view
   useFocusEffect(
