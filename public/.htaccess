@@ -13,6 +13,9 @@ RewriteBase /dare-you/
 RewriteCond %{HTTPS} !=on
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Web app manifest ("Add to Home Screen")
+AddType application/manifest+json .webmanifest
+
 # Single-page app: every path that isn't a real file goes to index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
