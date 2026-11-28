@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <rect width="1024" height="1024" fill="#FFFFFF"/>
-  <!-- The "A" with the check mark from the DARE logo (x 319–617, y 30–288), scaled up and centred -->
-  <g transform="translate(512 512) scale(2.2) translate(-471 -159)">
+  <!-- The "A" with the check mark from the DARE logo, scaled up; its tip (x 447.9) sits on the vertical centre line -->
+  <g transform="translate(512 512) scale(2.2) translate(-447.9 -159)">
     <path d="M342.0 78.0L395.2 183.4" fill="none" stroke="#0B1F26" stroke-width="46"/>
     <path d="M352 92.0H520.5L494.5 136.0H352Z" fill="#0B1F26"/>
     <path d="M402.4 197.7L447.9 287.9L600.0 30.0" fill="none" stroke="#00A8C6" stroke-width="46" stroke-linejoin="miter" stroke-miterlimit="8"/>
